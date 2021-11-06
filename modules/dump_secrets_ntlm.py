@@ -45,6 +45,10 @@ def parse_target(target: str) -> Tuple[str, str, str, str]:
 
 
 class Options(object):
+    """
+    Based on:
+        https://stackoverflow.com/a/2466207
+    """
     def __init__(self, *initial_data: Any, **kwargs: Any):
         for dictionary in initial_data:
             for key in dictionary:
