@@ -1,36 +1,65 @@
-It's README.md
+# NTLM scrutinizer
 
-Tested on:
+## Disclaimer
 
-Python 3.8.10
+It's only for education purposes.
 
-Ubuntu 20.04.3 LTS (GNU/Linux 5.4.0-89-generic x86_64)
+Avoid using it on production AD.
+
+Neither contributor incur any responsibility for any using it.
 
 
 
-How to run tests:
+## Functionality
 
-Extract sources.
+Based on [impacket](https://github.com/SecureAuthCorp/impacket) and [hashcat](https://github.com/hashcat/hashcat), the tool provides the following functions:
+
+- Run an instance of hashcat to brute NTLM-hashes and return session name. 
+- Re-run a broken instance from the restore file by session name.
+- Dump NTLM-hashes from AD and run an instance for bruting.
+- Get information about a running instance by session name.
+- Get information about all running instances.
+- Get bruted credentials by session name.
+- Run benchmark for bruting.
+
+Check out detailed information about arguments and methods in Swagger.
+
+
+
+## How to test it
+
+### Test environment
+
+The information below provided for:
+
+- Python 3.8.10
+
+- Ubuntu 20.04.3 LTS (GNU/Linux 5.4.0-89-generic x86_64)
+
+  
+
+### Preparations for run
+
+Install hashcat:
 
 ```
-python3 -m venv venv
+sudo apt update
+sudo apt install hashcat
 ```
 
-```
-source venv/bin/activate
-```
+Download the [source](https://github.com/ST1LLY/ntlm-scrutinizer) and unpack it.
 
-```
-pip install -r requirements.txt
-```
+Create Python virtual environment and install dependencies from requirements.txt.
 
+Put in files\dictionaries a necessary dictionary.
 
+Put in files\rules a necessary rule.
 
-put to temp folder file with hashes, file with rules, dictionary file. 
+If an early dumped NTLM file exists, then put it in files/ntlm_hashes.
 
 
 
-Run test app:
+Run flask app:
 
 ```
 export FLASK_ENV=production
@@ -40,21 +69,7 @@ flask run --host=0.0.0.0 --port=5000
 
 
 
-Open http://127.0.0.1:5000/api/
+Open Swagger on http://127.0.0.1:5000/api/
 
 
-
-Use /tests/run-instance to run instance
-
-Use /tests/instance-info to get info about run instance. Use session name from output /tests/run-instance
-
-Use /tests/all-instances-info to get info about all run instances
-
-Use /tests/dump-and-brute-ntlm to dump and then brute ntlm by auto for all users from AD or a certain one
-
-Use /tests/run-benchmark to run the benchmark as hashcat -b -m 1000
-
-
-
-TODO: Add a necessary content
 

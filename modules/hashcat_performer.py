@@ -115,6 +115,35 @@ class HashcatPerformer:
         }
 
     @staticmethod
+    def __init_subprocess(session_name: str, process_args: list) -> None:
+        """
+        Init hashcat subprocess
+
+        Args:
+            session_name(str): session name
+            process_args (list): params to run subprocess
+
+        """
+        logging.info(f'Running subprocess: {process_args}')
+
+        file_out_path = os.path.join(HashcatPerformer.logs_folder, f'hashcat_{session_name}.log')
+        file_err_path = os.path.join(HashcatPerformer.logs_folder, f'hashcat_{session_name}_errors.log')
+
+        p = subprocess.Popen(process_args,
+                             stdout=open(file_out_path, 'w'),
+                             stdin=subprocess.PIPE,
+                             stderr=open(file_err_path, 'w'))
+
+        HashcatPerformer.__set_instance({
+            'session_name': session_name,
+            'subprocess': p,
+            'file_out_path': file_out_path,
+            'file_err_path': file_err_path
+        })
+
+        logging.info(f'Subprocess started with session_name: {session_name}')
+
+    @staticmethod
     def set_working_folders(output_folder: str, restores_folder: str, logs_folder: str) -> None:
         """
         Set working folders for class
@@ -179,10 +208,46 @@ class HashcatPerformer:
         return instances_info
 
     @staticmethod
+    def re_run_instance(session_name: str) -> dict:
+        """
+        Re-run instance of hashcat
+        
+        Args:
+            session_name (str): name for hascat session
+        
+        Returns:
+            dict: {
+                'status': 'success' / 'not_found',
+                'session_name': session name
+            }
+        """""
+
+        restore_file_path = os.path.join(HashcatPerformer.restores_folder, f'{session_name}.restore')
+
+        # Checking if the restore file for the session exists
+        if not os.path.isfile(restore_file_path):
+            return {
+                'status': 'not_found',
+                'session_name': session_name
+            }
+        # This restore file exists
+        process_args = [
+            'hashcat',
+            '--restore',
+            f'--restore-file-path={restore_file_path}'
+        ]
+
+        HashcatPerformer.__init_subprocess(session_name, process_args)
+
+        return {
+            'status': 'success',
+            'session_name': session_name
+        }
+
+    @staticmethod
     def run_instance(hash_file_path: str,
                      dictionary_file_path: str,
                      rules_file_path: str,
-                     session_name: str = None,
                      is_force: bool = True) -> str:
         """
         Run instance of hashcat
@@ -191,7 +256,6 @@ class HashcatPerformer:
             hash_file_path (str): path to file contained hashes
             dictionary_file_path (str): path to file contained dictionary
             rules_file_path (str): path to file contained rules
-            session_name (str): name for hascat session. Default: None
             is_force (bool): run hascat with --force flag. Default: True
 
 
@@ -199,70 +263,40 @@ class HashcatPerformer:
             str: name for hascat session
 
         Raises:
-            NotAllowedFileName: session_name or/and hash filename contains
-                                not allowed filename
+            NotAllowedFileName: hash filename contains not allowed filename
         """
 
-        # If the session name hasn't been given then generating a unique session name
-        if session_name is None:
-            session_name = str(uuid.uuid4())
+        # Generating a unique session name
+        session_name = str(uuid.uuid4())
 
         # Implementing run command
         restore_file_path = os.path.join(HashcatPerformer.restores_folder, f'{session_name}.restore')
 
-        # Checking if the restore file for the session exists
-        if os.path.isfile(restore_file_path):
-            # This restore file exists
-            process_args = [
-                'hashcat',
-                '--restore',
-                f'--restore-file-path={restore_file_path}'
-            ]
-        else:
-            # This restore file doesn't exist
-            hash_file_name = os.path.basename(hash_file_path)
+        # This restore file doesn't exist
+        hash_file_name = os.path.basename(hash_file_path)
 
-            # Checking restrictions for names
-            if '___' in session_name:
-                raise NotAllowedFileName(f"Name {session_name} of session can't contained '___'")
+        # Checking restrictions for names
 
-            if '___' in hash_file_name:
-                raise NotAllowedFileName(f"Name {hash_file_name} of file with hashes can't contained '___'")
+        if '___' in hash_file_name:
+            raise NotAllowedFileName(f"Name {hash_file_name} of file with hashes can't contained '___'")
 
-            process_args = [
-                'hashcat',
-                '-m',
-                '1000',
-                hash_file_path,
-                dictionary_file_path,
-                '-r',
-                rules_file_path,
-                f'--session={session_name}',
-                '--restore-file-path=' + restore_file_path,
-                '-o',
-                os.path.join(HashcatPerformer.output_folder,
-                             f'{hash_file_name}___{session_name}.txt'),
-                '--potfile-disable',
-                '--force' if is_force else ''
-            ]
-        logging.info(f'Running subprocess: {process_args}')
-
-        file_out_path = os.path.join(HashcatPerformer.logs_folder, f'hashcat_{session_name}.log')
-        file_err_path = os.path.join(HashcatPerformer.logs_folder, f'hashcat_{session_name}_errors.log')
-
-        p = subprocess.Popen(process_args,
-                             stdout=open(file_out_path, 'w'),
-                             stdin=subprocess.PIPE,
-                             stderr=open(file_err_path, 'w'))
-
-        HashcatPerformer.__set_instance({
-            'session_name': session_name,
-            'subprocess': p,
-            'file_out_path': file_out_path,
-            'file_err_path': file_err_path
-        })
-
-        logging.info(f'Subprocess started with session_name: {session_name}')
+        process_args = [
+            'hashcat',
+            '-m',
+            '1000',
+            hash_file_path,
+            dictionary_file_path,
+            '-r',
+            rules_file_path,
+            f'--session={session_name}',
+            '--restore-file-path=' + restore_file_path,
+            '-o',
+            os.path.join(HashcatPerformer.output_folder,
+                         f'{hash_file_name}___{session_name}.txt'),
+            '--potfile-disable',
+            '--force' if is_force else ''
+        ]
+        HashcatPerformer.__init_subprocess(session_name, process_args)
         return session_name
 
     @staticmethod
@@ -277,7 +311,7 @@ class HashcatPerformer:
             dict: {
                 'status': 'success' / 'error'
                 'started': time of starting benchmark
-                'started': time of ending benchmark
+                'stopped': time of ending benchmark
                 'speeds': list of measures of speeds
             }
         """

@@ -14,7 +14,7 @@ from modules.dump_secrets_ntlm import DumpSecretsNtlm
 import modules.support_functions as sup_f
 
 from flask import request
-from flask_restplus import Namespace, Resource
+from flask_restplus import Namespace, Resource, fields
 from enviroment import LOGS_DIR, \
     HASHCAT_RESTORES_DIR, \
     HASHCAT_BRUTED_HASHES_DIR, \
@@ -27,20 +27,56 @@ HashcatPerformer().set_working_folders(
     restores_folder=HASHCAT_RESTORES_DIR,
     logs_folder=LOGS_DIR)
 
-api = Namespace('tests', description='Tests API')
+api = Namespace('ntlm-scr')
+
+# Models for output responses
+
+session_name_fields = api.model('SessionName', {
+    'session_name': fields.String,
+})
+
+status_data_fields = api.model('StatusData', {
+    'title': fields.String,
+    'value': fields.String,
+})
+
+instance_info_fields = api.model('InstanceInfo', {
+    'session_name': fields.String,
+    'state': fields.String,
+    'status_data': fields.List(fields.Nested(status_data_fields))
+})
+
+benchmark_status_fields = api.model('BenchmarkStatus', {
+    'status': fields.String,
+    'started': fields.String,
+    'stopped': fields.String,
+    'speeds': fields.List(fields.String)
+})
+
+bruted_creds_fields = api.model('BrutedCreds', {
+    'status': fields.String,
+    'creds': fields.List(fields.String),
+})
+
+re_run_session_fields = api.model('ReRunSession', {
+    'status': fields.String,
+    'session_name': fields.String,
+})
 
 run_instance_p = api.parser()
 run_instance_p.add_argument('hash_file_name', location='form', required=True,
-                            help='hash file name in files/ntlm_hashes directory', default='all_users.ntds')
+                            help='The hash file name in files/ntlm_hashes')
 run_instance_p.add_argument('dictionary_file_name', location='form', required=True,
-                            help='dictionary file name in files/dictionaries directory', default='rockyou.txt')
+                            help='The dictionary file name in files/dictionaries')
 run_instance_p.add_argument('rules_file_name', location='form', required=True,
-                            help='rules file name in files/rules directory', default='InsidePro-PasswordsPro.rule')
+                            help='The rules file name in files/rules')
 
 
-@api.route('/run-instance')
+@api.route('/run-instance',
+           doc={'description': 'Run an instance of hashcat to brute NTLM-hashes'})
 class RunInstance(Resource):
     @api.expect(run_instance_p)
+    @api.response(200, 'Success', session_name_fields)
     def post(self) -> Tuple:
         logging.debug(f'request {request}')
         data = run_instance_p.parse_args()
@@ -48,19 +84,39 @@ class RunInstance(Resource):
         return {'session_name': HashcatPerformer().run_instance(
             hash_file_path=os.path.join(NTLM_HASHES_DIR, data['hash_file_name']),
             dictionary_file_path=os.path.join(HASHCAT_DICTIONARIES_DIR, data['dictionary_file_name']),
-            rules_file_path=os.path.join(HASHCAT_RULES_DIR, data['rules_file_name']),
-            # session_name='test_restoring'
+            rules_file_path=os.path.join(HASHCAT_RULES_DIR, data['rules_file_name'])
         )}, 200
+
+
+re_run_instance_p = api.parser()
+re_run_instance_p.add_argument('session_name', location='form', required=True,
+                               help='Re-run a broken instance from the restore file if it exists')
+
+
+@api.route('/re-run-instance',
+           doc={'description': 'Re-run an instance of hashcat to brute NTLM-hashes if the restore file exists'})
+class ReRunInstance(Resource):
+    @api.expect(re_run_instance_p)
+    @api.response(200, 'Success', re_run_session_fields)
+    def post(self) -> Tuple:
+        logging.debug(f'request {request}')
+        data = re_run_instance_p.parse_args()
+
+        return HashcatPerformer().re_run_instance(
+            session_name=data['session_name']
+        ), 200
 
 
 instance_info_p = api.parser()
 instance_info_p.add_argument('session_name', location='args', required=True,
-                             help='session name of instance')
+                             help='The session name of instance')
 
 
-@api.route('/instance-info')
+@api.route('/instance-info',
+           doc={'description': 'Get information about a running instance'})
 class InstanceInfo(Resource):
     @api.expect(instance_info_p)
+    @api.response(200, 'Success', instance_info_fields)
     def get(self) -> Tuple:
         logging.debug(f'request {request}')
         data = instance_info_p.parse_args()
@@ -68,8 +124,10 @@ class InstanceInfo(Resource):
         return {'instance_info': HashcatPerformer().get_instance_info(data['session_name'])}, 200
 
 
-@api.route('/all-instances-info')
+@api.route('/all-instances-info',
+           doc={'description': 'Get information about all running instances'})
 class AllInstancesInfo(Resource):
+    @api.response(200, 'Success', fields.List(fields.Nested(instance_info_fields)))
     def get(self) -> Tuple:
         logging.debug(f'request {request}')
 
@@ -78,21 +136,22 @@ class AllInstancesInfo(Resource):
 
 dump_and_brute_ntlm_p = api.parser()
 dump_and_brute_ntlm_p.add_argument('target', location='form', required=True,
-                                   help='[[domain/]username[:password]@]<targetName or address>')
+                                   help='The format is [[domain/]username[:password]@]<targetName or address>')
 dump_and_brute_ntlm_p.add_argument('hashes', location='form', required=True,
-                                   help='NTLM hashes, format is LMHASH:NTHASH')
+                                   help='The NTLM hash (format is LMHASH:NTHASH)')
 dump_and_brute_ntlm_p.add_argument('just_dc_user', location='form', required=False,
-                                   help='Specified user from AD')
+                                   help='The specified AD user')
 dump_and_brute_ntlm_p.add_argument('dictionary_file_name', location='form', required=True,
-                                   help='dictionary file name in files/dictionaries directory', default='rockyou.txt')
+                                   help='The dictionary file name in files/dictionaries')
 dump_and_brute_ntlm_p.add_argument('rules_file_name', location='form', required=True,
-                                   help='rules file name in files/rules directory',
-                                   default='InsidePro-PasswordsPro.rule')
+                                   help='The rules file name in files/rules')
 
 
-@api.route('/dump-and-brute-ntlm')
+@api.route('/dump-and-brute-ntlm',
+           doc={'description': 'Dump NTLM-hashes from AD and run an instance for bruting'})
 class DumpAndBruteNtlm(Resource):
     @api.expect(dump_and_brute_ntlm_p)
+    @api.response(200, 'Success', session_name_fields)
     def post(self) -> Tuple:
         logging.debug(f'request {request}')
         data = dump_and_brute_ntlm_p.parse_args()
@@ -122,8 +181,10 @@ class DumpAndBruteNtlm(Resource):
         )}, 200
 
 
-@api.route('/run-benchmark')
+@api.route('/run-benchmark',
+           doc={'description': 'Run benchmark for bruting'})
 class RunBenchmark(Resource):
+    @api.response(200, 'Success', benchmark_status_fields)
     def get(self) -> Tuple:
         logging.debug(f'request {request}')
 
@@ -132,12 +193,14 @@ class RunBenchmark(Resource):
 
 bruted_creds_p = api.parser()
 bruted_creds_p.add_argument('session_name', location='args', required=True,
-                            help='session_name of a run instance')
+                            help='The session name of a run instance')
 
 
-@api.route('/bruted-creds')
+@api.route('/bruted-creds',
+           doc={'description': 'Get bruted credentials'})
 class BrutedCreads(Resource):
     @api.expect(bruted_creds_p)
+    @api.response(200, 'Success', bruted_creds_fields)
     def get(self) -> Tuple:
         logging.debug(f'request {request}')
         data = bruted_creds_p.parse_args()
