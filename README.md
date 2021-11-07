@@ -51,9 +51,9 @@ Download the [source](https://github.com/ST1LLY/ntlm-scrutinizer) and unpack it.
 
 Create Python virtual environment and install dependencies from requirements.txt.
 
-Put in files\dictionaries a necessary dictionary.
+Put in files/dictionaries a necessary dictionary.
 
-Put in files\rules a necessary rule.
+Put in files/rules a necessary rule.
 
 If an early dumped NTLM file exists, then put it in files/ntlm_hashes.
 
