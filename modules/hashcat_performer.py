@@ -220,7 +220,7 @@ class HashcatPerformer:
                 'status': 'success' / 'not_found',
                 'session_name': session name
             }
-        """""
+        """
 
         restore_file_path = os.path.join(HashcatPerformer.restores_folder, f'{session_name}.restore')
 
