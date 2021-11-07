@@ -5,6 +5,8 @@ output/*
 !output/.gitkeep
 files/restores/*
 !files/restores/.gitkeep
+files/bruted_hashes/*
+!files/bruted_hashes/.gitkeep
 logs/*
 !logs/.gitkeep
 

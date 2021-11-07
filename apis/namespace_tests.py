@@ -14,10 +14,14 @@ from modules.dump_secrets_ntlm import DumpSecretsNtlm
 
 from flask import request
 from flask_restplus import Namespace, Resource
-from enviroment import ROOT_DIR, TEMP_DIR, LOGS_DIR, HASHCAT_RESTORES_DIR
+from enviroment import ROOT_DIR, \
+    TEMP_DIR, \
+    LOGS_DIR, \
+    HASHCAT_RESTORES_DIR, \
+    HASHCAT_BRUTED_HASHES_DIR
 
 HashcatPerformer().set_working_folders(
-    output_folder=os.path.join(ROOT_DIR, 'output'),
+    output_folder=HASHCAT_BRUTED_HASHES_DIR,
     restores_folder=HASHCAT_RESTORES_DIR,
     logs_folder=LOGS_DIR)
 
