@@ -1,8 +1,4 @@
 .idea/
-temp/*
-!temp/.gitkeep
-output/*
-!output/.gitkeep
 files/restores/*
 !files/restores/.gitkeep
 files/bruted_hashes/*
@@ -13,8 +9,6 @@ files/rules/*
 !files/rules/.gitkeep
 files/ntlm_hashes/*
 !files/ntlm_hashes/.gitkeep
-logs/*
-!logs/.gitkeep
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
