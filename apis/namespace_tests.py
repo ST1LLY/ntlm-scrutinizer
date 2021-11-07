@@ -11,6 +11,7 @@ import time
 
 from modules.hashcat_performer import HashcatPerformer
 from modules.dump_secrets_ntlm import DumpSecretsNtlm
+import modules.support_functions as sup_f
 
 from flask import request
 from flask_restplus import Namespace, Resource
@@ -85,7 +86,8 @@ dump_and_brute_ntlm_p.add_argument('just_dc_user', location='form', required=Fal
 dump_and_brute_ntlm_p.add_argument('dictionary_file_name', location='form', required=True,
                                    help='dictionary file name in files/dictionaries directory', default='rockyou.txt')
 dump_and_brute_ntlm_p.add_argument('rules_file_name', location='form', required=True,
-                                   help='rules file name in files/rules directory', default='InsidePro-PasswordsPro.rule')
+                                   help='rules file name in files/rules directory',
+                                   default='InsidePro-PasswordsPro.rule')
 
 
 @api.route('/dump-and-brute-ntlm')
@@ -127,3 +129,75 @@ class RunBenchmark(Resource):
 
         return HashcatPerformer().run_benchmark(), 200
 
+
+bruted_creds_p = api.parser()
+bruted_creds_p.add_argument('session_name', location='args', required=True,
+                            help='session_name of a run instance')
+
+
+@api.route('/bruted-creds')
+class BrutedCreads(Resource):
+    @api.expect(bruted_creds_p)
+    def get(self) -> Tuple:
+        logging.debug(f'request {request}')
+        data = bruted_creds_p.parse_args()
+
+        # Trying to find the output file with bruted hashes
+        bruted_hashes_file_path = sup_f.try_find_file_in_dir(HASHCAT_BRUTED_HASHES_DIR, data['session_name'])
+
+        if bruted_hashes_file_path is None:
+            logging.error(
+                f"The bruted hashes file for session_name: {data['session_name']} in "
+                f"{HASHCAT_BRUTED_HASHES_DIR} not found")
+
+            return {
+                       'status': 'not_found',
+                       'creds': []
+                   }, 200
+
+        splitted_file_name = os.path.basename(bruted_hashes_file_path).split('___')
+
+        if len(splitted_file_name) != 2:
+            logging.error(
+                f"The file name of file {bruted_hashes_file_path} couldn't been splitted to 2 part by '___'")
+            return {
+                       'status': 'not_found',
+                       'creds': []
+                   }, 200
+
+        # Trying to find used file contained ntlm hashes for this session
+        ntlm_hashes_file_path = sup_f.try_find_file_in_dir(NTLM_HASHES_DIR, splitted_file_name[0])
+
+        if ntlm_hashes_file_path is None:
+            logging.error(
+                f"The used file contained ntlm hashes for session_name: {data['session_name']} in "
+                f"{NTLM_HASHES_DIR} not found")
+
+            return {
+                       'status': 'not_found',
+                       'creds': []
+                   }, 200
+
+        bruted_hashes = sup_f.read_file_to_lst(bruted_hashes_file_path)
+        ntlm_hashes = sup_f.read_file_to_lst(ntlm_hashes_file_path)
+
+        # Matching bruted hashes with ntlm hashes
+        creads = []
+        for bruted_hash in bruted_hashes:
+            hash_v, password = tuple(bruted_hash.split(':'))
+            for ntlm_hash in ntlm_hashes:
+                if hash_v in ntlm_hash:
+                    creads.append(
+                        f"{ntlm_hash.split(':')[0]}:{password}"
+                    )
+        logging.info(f"Got {len(creads)} creds for session_name: {data['session_name']}")
+        if not creads:
+            return {
+                       'status': 'not_found',
+                       'creds': []
+                   }, 200
+
+        return {
+                   'status': 'found',
+                   'creds': creads
+               }, 200
