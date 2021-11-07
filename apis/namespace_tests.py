@@ -14,11 +14,12 @@ from modules.dump_secrets_ntlm import DumpSecretsNtlm
 
 from flask import request
 from flask_restplus import Namespace, Resource
-from enviroment import ROOT_DIR, \
-    TEMP_DIR, \
-    LOGS_DIR, \
+from enviroment import LOGS_DIR, \
     HASHCAT_RESTORES_DIR, \
-    HASHCAT_BRUTED_HASHES_DIR
+    HASHCAT_BRUTED_HASHES_DIR, \
+    HASHCAT_DICTIONARIES_DIR, \
+    HASHCAT_RULES_DIR, \
+    NTLM_HASHES_DIR
 
 HashcatPerformer().set_working_folders(
     output_folder=HASHCAT_BRUTED_HASHES_DIR,
@@ -44,9 +45,9 @@ class RunInstance(Resource):
         data = run_instance_p.parse_args()
 
         return {'session_name': HashcatPerformer().run_instance(
-            hash_file_path=os.path.join(TEMP_DIR, data['hash_file_name']),
-            dictionary_file_path=os.path.join(TEMP_DIR, data['dictionary_file_name']),
-            rules_file_path=os.path.join(TEMP_DIR, data['rules_file_name']),
+            hash_file_path=os.path.join(NTLM_HASHES_DIR, data['hash_file_name']),
+            dictionary_file_path=os.path.join(HASHCAT_DICTIONARIES_DIR, data['dictionary_file_name']),
+            rules_file_path=os.path.join(HASHCAT_RULES_DIR, data['rules_file_name']),
             # session_name='test_restoring'
         )}, 200
 
@@ -98,24 +99,24 @@ class DumpAndBruteNtlm(Resource):
             logging.info('Getting hashes from all users')
             dump_secrets_ntlm = DumpSecretsNtlm(target=data['target'],
                                                 hashes=data['hashes'],
-                                                output_file=os.path.join(ROOT_DIR, 'temp',
-                                                                         f"{time.strftime('%Y_%m_%d__%H_%M_%S')}"
+                                                output_file=os.path.join(NTLM_HASHES_DIR,
+                                                                         f"{time.strftime('%Y_%m_%d__%H_%M_%S.%f')}"
                                                                          "_all_users"))
         else:
             logging.info(f"Getting hashes from the certain user {data['just_dc_user']}")
             dump_secrets_ntlm = DumpSecretsNtlm(target=data['target'],
                                                 hashes=data['hashes'],
                                                 just_dc_user=data['just_dc_user'],
-                                                output_file=os.path.join(ROOT_DIR, 'temp',
-                                                                         f"{time.strftime('%Y_%m_%d__%H_%M_%S')}"
+                                                output_file=os.path.join(NTLM_HASHES_DIR,
+                                                                         f"{time.strftime('%Y_%m_%d__%H_%M_%S.%f')}"
                                                                          f"_{data['just_dc_user']}"))
         hash_file_path = dump_secrets_ntlm.get_ntlm_hashes()
         logging.info(f"Gotten hashes have been dumped to {hash_file_path}")
 
         return {'session_name': HashcatPerformer().run_instance(
             hash_file_path=hash_file_path,
-            dictionary_file_path=os.path.join(TEMP_DIR, data['dictionary_file_name']),
-            rules_file_path=os.path.join(TEMP_DIR, data['rules_file_name']),
+            dictionary_file_path=os.path.join(HASHCAT_DICTIONARIES_DIR, data['dictionary_file_name']),
+            rules_file_path=os.path.join(HASHCAT_RULES_DIR, data['rules_file_name']),
         )}, 200
 
 

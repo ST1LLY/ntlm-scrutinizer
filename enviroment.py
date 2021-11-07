@@ -12,3 +12,12 @@ HASHCAT_RESTORES_DIR = os.path.join(ROOT_DIR, 'files', 'restores')
 
 # The path to the dir with bruted hashes
 HASHCAT_BRUTED_HASHES_DIR = os.path.join(ROOT_DIR, 'files', 'bruted_hashes')
+
+# The path to the dir with brute dictionaries
+HASHCAT_DICTIONARIES_DIR = os.path.join(ROOT_DIR, 'files', 'dictionaries')
+
+# The path to the dir with brute rules
+HASHCAT_RULES_DIR = os.path.join(ROOT_DIR, 'files', 'rules')
+
+# The path to the dir with ntlm hashes
+NTLM_HASHES_DIR = os.path.join(ROOT_DIR, 'files', 'ntlm_hashes')
