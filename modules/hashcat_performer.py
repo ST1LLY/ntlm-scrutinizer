@@ -8,6 +8,7 @@ import os
 import subprocess
 import logging
 import uuid
+import re
 
 from typing import List
 
@@ -263,3 +264,67 @@ class HashcatPerformer:
 
         logging.info(f'Subprocess started with session_name: {session_name}')
         return session_name
+
+    @staticmethod
+    def run_benchmark(is_force: bool = True) -> dict:
+        """
+        Run hashcat -b -m 1000
+
+        Args:
+            is_force (bool): run hascat with --force flag. Default: True
+
+        Returns:
+            dict: {
+                'status': 'success' / 'error'
+                'started': time of starting benchmark
+                'started': time of ending benchmark
+                'speeds': list of measures of speeds
+            }
+        """
+
+        process_args = [
+            'hashcat',
+            '-b',
+            '-m',
+            '1000',
+            '--force' if is_force else ''
+        ]
+
+        # Running a benchmark process
+        result = subprocess.run(process_args,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+
+        # Getting output of the process
+        out = result.stdout.decode('utf-8')
+        err = result.stderr.decode('utf-8')
+
+        logging.info(f'out: {out}')
+
+        # Getting started and stopped times of the benchmark
+        started_s = re.search(r'Started: (.+)', out, re.MULTILINE)
+        stopped_s = re.search(r'Stopped: (.+)', out, re.MULTILINE)
+
+        started = started_s.group(1) if started_s is not None else ''
+        stopped = stopped_s.group(1) if stopped_s is not None else ''
+
+        # If an error has occurred during the benchmark
+        if err:
+            logging.error(f'err: {err}')
+
+            return {
+                'status': 'error',
+                'started': started,
+                'stopped': stopped,
+                'speeds': [],
+            }
+
+        # Getting information about speeds
+        speeds = re.findall(r'(?<=\.\.:)\s+(.+)', out)
+
+        return {
+            'status': 'success',
+            'started': started,
+            'stopped': stopped,
+            'speeds': speeds,
+        }

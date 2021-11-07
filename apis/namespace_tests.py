@@ -113,3 +113,11 @@ class DumpAndBruteNtlm(Resource):
             dictionary_file_path=os.path.join(TEMP_DIR, data['dictionary_file_name']),
             rules_file_path=os.path.join(TEMP_DIR, data['rules_file_name']),
         )}, 200
+
+
+@api.route('/run-benchmark')
+class RunBenchmark(Resource):
+    def get(self) -> Tuple:
+        logging.debug(f'request {request}')
+
+        return HashcatPerformer().run_benchmark(), 200

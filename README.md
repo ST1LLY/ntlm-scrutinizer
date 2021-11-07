@@ -50,7 +50,9 @@ Use /tests/instance-info to get info about run instance. Use session name from o
 
 Use /tests/all-instances-info to get info about all run instances
 
-Use /tests/dump-and-brute-ntlm' to dump and then brute ntlm by auto for all users from AD or a certain one
+Use /tests/dump-and-brute-ntlm to dump and then brute ntlm by auto for all users from AD or a certain one
+
+Use /tests/run-benchmark to run the benchmark as hashcat -b -m 1000
 
 
 
