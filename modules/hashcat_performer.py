@@ -247,8 +247,8 @@ class HashcatPerformer:
             ]
         logging.info(f'Running subprocess: {process_args}')
 
-        file_out_path = os.path.join(HashcatPerformer.logs_folder, f'{session_name}.log')
-        file_err_path = os.path.join(HashcatPerformer.logs_folder, f'{session_name}_errors.log')
+        file_out_path = os.path.join(HashcatPerformer.logs_folder, f'hashcat_{session_name}.log')
+        file_err_path = os.path.join(HashcatPerformer.logs_folder, f'hashcat_{session_name}_errors.log')
 
         p = subprocess.Popen(process_args,
                              stdout=open(file_out_path, 'w'),
