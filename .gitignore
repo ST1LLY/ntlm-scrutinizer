@@ -3,8 +3,8 @@ temp/*
 !temp/.gitkeep
 output/*
 !output/.gitkeep
-restores/*
-!restores/.gitkeep
+files/restores/*
+!files/restores/.gitkeep
 logs/*
 !logs/.gitkeep
 
