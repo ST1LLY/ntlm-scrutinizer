@@ -30,11 +30,11 @@ api = Namespace('tests', description='Tests API')
 
 run_instance_p = api.parser()
 run_instance_p.add_argument('hash_file_name', location='form', required=True,
-                            help='hash file name in temp directory', default='all_users.ntds')
+                            help='hash file name in files/ntlm_hashes directory', default='all_users.ntds')
 run_instance_p.add_argument('dictionary_file_name', location='form', required=True,
-                            help='dictionary file name in temp directory', default='rockyou.txt')
+                            help='dictionary file name in files/dictionaries directory', default='rockyou.txt')
 run_instance_p.add_argument('rules_file_name', location='form', required=True,
-                            help='rules file name in temp directory', default='InsidePro-PasswordsPro.rule')
+                            help='rules file name in files/rules directory', default='InsidePro-PasswordsPro.rule')
 
 
 @api.route('/run-instance')
@@ -83,9 +83,9 @@ dump_and_brute_ntlm_p.add_argument('hashes', location='form', required=True,
 dump_and_brute_ntlm_p.add_argument('just_dc_user', location='form', required=False,
                                    help='Specified user from AD')
 dump_and_brute_ntlm_p.add_argument('dictionary_file_name', location='form', required=True,
-                                   help='dictionary file name in temp directory', default='rockyou.txt')
+                                   help='dictionary file name in files/dictionaries directory', default='rockyou.txt')
 dump_and_brute_ntlm_p.add_argument('rules_file_name', location='form', required=True,
-                                   help='rules file name in temp directory', default='InsidePro-PasswordsPro.rule')
+                                   help='rules file name in files/rules directory', default='InsidePro-PasswordsPro.rule')
 
 
 @api.route('/dump-and-brute-ntlm')
@@ -126,3 +126,4 @@ class RunBenchmark(Resource):
         logging.debug(f'request {request}')
 
         return HashcatPerformer().run_benchmark(), 200
+
