@@ -1,5 +1,5 @@
 """
-Demonstration how to use DumpSecretsNtlm to dump ntlm-hashes
+Running Flask app
 """
 
 import logging

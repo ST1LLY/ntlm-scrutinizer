@@ -1,3 +1,6 @@
+"""
+Shared environment constants for app
+"""
 import os
 
 # Get this file full path

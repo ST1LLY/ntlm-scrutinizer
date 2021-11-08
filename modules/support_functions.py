@@ -1,5 +1,5 @@
 """
-Support functions for main logic
+Support functions for the main logic
 """
 from typing import List, Optional
 import os
