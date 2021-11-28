@@ -137,14 +137,14 @@ class AllInstancesInfo(Resource):
 dump_and_brute_ntlm_p = api.parser()
 dump_and_brute_ntlm_p.add_argument('target', location='form', required=True,
                                    help='The format is [[domain/]username[:password]@]<targetName or address>')
-dump_and_brute_ntlm_p.add_argument('hashes', location='form', required=True,
-                                   help='The NTLM hash (format is LMHASH:NTHASH)')
-dump_and_brute_ntlm_p.add_argument('just_dc_user', location='form', required=False,
-                                   help='The specified AD user')
 dump_and_brute_ntlm_p.add_argument('dictionary_file_name', location='form', required=True,
                                    help='The dictionary file name in files/dictionaries')
 dump_and_brute_ntlm_p.add_argument('rules_file_name', location='form', required=True,
                                    help='The rules file name in files/rules')
+dump_and_brute_ntlm_p.add_argument('hashes', location='form', required=False,
+                                   help='The NTLM hash (format is LMHASH:NTHASH)')
+dump_and_brute_ntlm_p.add_argument('just_dc_user', location='form', required=False,
+                                   help='The specified AD user')
 
 
 @api.route('/dump-and-brute-ntlm',
@@ -158,19 +158,19 @@ class DumpAndBruteNtlm(Resource):
 
         if data['just_dc_user'] is None:
             logging.info('Getting hashes from all users')
-            dump_secrets_ntlm = DumpSecretsNtlm(target=data['target'],
-                                                hashes=data['hashes'],
-                                                output_file=os.path.join(NTLM_HASHES_DIR,
-                                                                         f"{time.strftime('%Y_%m_%d__%H_%M_%S.%f')}"
-                                                                         "_all_users"))
+            output_file = os.path.join(NTLM_HASHES_DIR,
+                                       f"{time.strftime('%Y_%m_%d__%H_%M_%S.%f')}"
+                                       f"_all_users")
         else:
             logging.info(f"Getting hashes from the certain user {data['just_dc_user']}")
-            dump_secrets_ntlm = DumpSecretsNtlm(target=data['target'],
-                                                hashes=data['hashes'],
-                                                just_dc_user=data['just_dc_user'],
-                                                output_file=os.path.join(NTLM_HASHES_DIR,
-                                                                         f"{time.strftime('%Y_%m_%d__%H_%M_%S.%f')}"
-                                                                         f"_{data['just_dc_user']}"))
+            output_file = os.path.join(NTLM_HASHES_DIR,
+                                       f"{time.strftime('%Y_%m_%d__%H_%M_%S.%f')}"
+                                       f"_{data['just_dc_user']}")
+
+        dump_secrets_ntlm = DumpSecretsNtlm(target=data['target'],
+                                            output_file=output_file,
+                                            just_dc_user=data['just_dc_user'],
+                                            hashes=data['hashes'])
         hash_file_path = dump_secrets_ntlm.get_ntlm_hashes()
         logging.info(f"Gotten hashes have been dumped to {hash_file_path}")
 

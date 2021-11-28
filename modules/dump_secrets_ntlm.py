@@ -49,6 +49,7 @@ class Options(object):
     Source:
         https://stackoverflow.com/a/2466207
     """
+
     def __init__(self, *initial_data: Any, **kwargs: Any):
         for dictionary in initial_data:
             for key in dictionary:
@@ -58,14 +59,14 @@ class Options(object):
 
 
 class DumpSecretsNtlm(DumpSecrets):
-    def __init__(self, target: str, hashes: str, output_file: str, just_dc_user: str = None):
+    def __init__(self, target: str, output_file: str, hashes: str = None, just_dc_user: str = None):
         """
         Class for dumping ntlm-hashes
 
         Args:
             target (str): [[domain/]username[:password]@]<targetName or address>
-            hashes (str): NTLM hashes, format is LMHASH:NTHASH
             output_file (str): base output filename. Extensions will be added for sam, secrets, cached and ntds
+            hashes (str): NTLM hash, format is LMHASH:NTHASH. Default: None
             just_dc_user (str): Extract only NTDS.DIT data for the user specified. Default: None
         """
         domain, username, password, remote_name = parse_target(target)
