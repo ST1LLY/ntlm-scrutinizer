@@ -7,7 +7,7 @@ Author:
 import os
 import logging
 from typing import Tuple
-import time
+import datetime
 
 from modules.hashcat_performer import HashcatPerformer
 from modules.dump_secrets_ntlm import DumpSecretsNtlm
@@ -159,12 +159,12 @@ class DumpAndBruteNtlm(Resource):
         if data['just_dc_user'] is None:
             logging.info('Getting hashes from all users')
             output_file = os.path.join(NTLM_HASHES_DIR,
-                                       f"{time.strftime('%Y_%m_%d__%H_%M_%S.%f')}"
+                                       f"{datetime.datetime.now().strftime('%Y_%m_%d__%H_%M_%S.%f')}"
                                        f"_all_users")
         else:
             logging.info(f"Getting hashes from the certain user {data['just_dc_user']}")
             output_file = os.path.join(NTLM_HASHES_DIR,
-                                       f"{time.strftime('%Y_%m_%d__%H_%M_%S.%f')}"
+                                       f"{datetime.datetime.now().strftime('%Y_%m_%d__%H_%M_%S.%f')}"
                                        f"_{data['just_dc_user']}")
 
         dump_secrets_ntlm = DumpSecretsNtlm(target=data['target'],
