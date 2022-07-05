@@ -14,9 +14,8 @@ Neither contributor incur any responsibility for any using it.
 
 Based on [impacket](https://github.com/SecureAuthCorp/impacket) and [hashcat](https://github.com/hashcat/hashcat), the tool provides the following functions:
 
-- Run an instance of hashcat to brute NTLM-hashes and return session name. 
-- Re-run a broken instance from the restore file by session name.
 - Dump NTLM-hashes from AD and run an instance for bruting.
+- Re-run a broken instance from the restore file by session name.
 - Get information about a running instance by session name.
 - Get information about all running instances.
 - Get bruted credentials by session name.
@@ -47,29 +46,37 @@ sudo apt update
 sudo apt install hashcat
 ```
 
+
+
 Download the [source](https://github.com/ST1LLY/ntlm-scrutinizer) and unpack it.
 
-Create Python virtual environment and install dependencies from requirements.txt.
-
-Put in files/dictionaries a necessary dictionary.
-
-Put in files/rules a necessary rule.
-
-If an early dumped NTLM file exists, then put it in files/ntlm_hashes.
 
 
-
-Run flask app:
+Create Python virtual environment and install dependencies from requirements.txt:
 
 ```
-export FLASK_ENV=production
-export FLASK_APP=app.py
-flask run --host=0.0.0.0 --port=5000
+pip install -r .\requirements.txt
 ```
 
 
 
-Open Swagger on http://127.0.0.1:5000/api/
+Put in files/dictionaries a necessary dictionary, ex. [rockyou.txt](https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt).
+
+Put in files/rules a necessary rule, ex. [InsidePro-PasswordsPro.rule](https://github.com/hashcat/hashcat/blob/master/rules/InsidePro-PasswordsPro.rule).
+
+
+
+Open project folder and run app:
+
+```
+ uvicorn app:app --reload --host 0.0.0.0 --port 5000
+```
+
+
+
+Open Swagger on http://localhost:5000/docs
+
+Open API specification on http://localhost:5000/redoc
 
 
 
