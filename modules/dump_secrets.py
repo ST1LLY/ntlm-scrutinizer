@@ -83,8 +83,6 @@ class DumpSecrets:
                             # target system. We just have a last resort. Hope we have tickets cached and that they
                             # will work
                             logging.debug('SMBConnection didn\'t work, hoping Kerberos will help (%s)' % str(e))
-                            pass
-                        else:
                             raise
 
                     self.__remoteOps = RemoteOperations(self.__smbConnection, self.__doKerberos, self.__kdcHost)
@@ -104,6 +102,7 @@ class DumpSecrets:
                             'Policy SPN target name validation might be restricting full DRSUAPI dump. Try -just-dc-user')
                     else:
                         logging.error('RemoteOperations failed: %s' % str(e))
+                    raise
 
             # If RemoteOperations succeeded, then we can extract SAM and LSA
             if self.__justDC is False and self.__justDCNTLM is False and self.__canProcessSAMLSA:
@@ -119,7 +118,7 @@ class DumpSecrets:
                         self.__SAMHashes.export(self.__outputFileName)
                 except Exception as e:
                     logging.error('SAM hashes extraction failed: %s' % str(e))
-
+                    raise
                 try:
                     if self.__isRemote is True:
                         SECURITYFileName = self.__remoteOps.saveSECURITY()
@@ -139,6 +138,7 @@ class DumpSecrets:
                         import traceback
                         traceback.print_exc()
                     logging.error('LSA hashes extraction failed: %s' % str(e))
+                    raise
 
             # NTDS Extraction we can try regardless of RemoteOperations failing. It might still work
             if self.__isRemote is True:
@@ -174,6 +174,7 @@ class DumpSecrets:
                                  "in the form of NetBIOS domain name/user (e.g. contoso/Administratror).")
                 elif self.__useVSSMethod is False:
                     logging.info('Something wen\'t wrong with the DRSUAPI approach. Try again with -use-vss parameter')
+                raise
             self.cleanup()
         except (Exception, KeyboardInterrupt) as e:
             if logging.getLogger().level == logging.DEBUG:
@@ -201,6 +202,9 @@ class DumpSecrets:
                 self.cleanup()
             except:
                 pass
+            finally:
+                if not isinstance(e, KeyboardInterrupt):
+                    raise
 
     def cleanup(self):
         logging.info('Cleaning up... ')
