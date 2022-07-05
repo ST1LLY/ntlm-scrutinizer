@@ -32,9 +32,9 @@ Check out detailed information about arguments and methods in Swagger.
 
 The information below provided for:
 
-- Python 3.8.10
+- Python 3.10.5
 
-- Ubuntu 20.04.3 LTS (GNU/Linux 5.4.0-89-generic x86_64)
+- Ubuntu Ubuntu 20.04.4 LTS
 
   
 

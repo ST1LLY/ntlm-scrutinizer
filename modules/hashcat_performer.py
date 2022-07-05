@@ -46,7 +46,7 @@ class HashcatPerformer:
         HashcatPerformer.instances.append(instance)
 
     @staticmethod
-    def __get_found_instance_info(certain_instance: dict) -> dict:
+    def __get_found_instance_info(certain_instance: dict) -> dict[str, str | list[dict[str, str]]]:
         """
         Info about the found instance of hashcat.
         Check on existence by session name has been done before.
@@ -192,12 +192,12 @@ class HashcatPerformer:
         return HashcatPerformer.__get_found_instance_info(certain_instance)
 
     @staticmethod
-    def get_all_instances_info() -> List[dict]:
+    def get_all_instances_info() -> list[dict[str, str | list[dict[str, str]]]]:
         """
         Get info about all run instances of hashcat
 
         Returns:
-            List[dict]: Info about all run instances
+            list[dict[str, str | list[dict[str, str]]]]: Info about all run instances
         """
 
         # Gathering info about all run instances of hashcat
@@ -208,7 +208,7 @@ class HashcatPerformer:
         return instances_info
 
     @staticmethod
-    def re_run_instance(session_name: str) -> dict:
+    def re_run_instance(session_name: str) -> dict[str, str]:
         """
         Re-run instance of hashcat
         
@@ -300,7 +300,7 @@ class HashcatPerformer:
         return session_name
 
     @staticmethod
-    def run_benchmark(is_force: bool = True) -> dict:
+    def run_benchmark(is_force: bool = True) -> dict[str, str]:
         """
         Run hashcat -b -m 1000
 
@@ -308,7 +308,7 @@ class HashcatPerformer:
             is_force (bool): run hascat with --force flag. Default: True
 
         Returns:
-            dict: {
+            dict[str, str]: {
                 'status': 'success' / 'error'
                 'started': time of starting benchmark
                 'stopped': time of ending benchmark

@@ -1,17 +1,15 @@
 """
-Running Flask app
+Running FastAPI app
 """
 
 import logging
-import datetime
-from flask import Flask
-from apis import blueprint as api
+
+from fastapi import FastAPI
+from routers import instance, creds, technical
 
 logging.getLogger().setLevel(logging.DEBUG)
 
-app = Flask(__name__)
-app.logger.setLevel(logging.DEBUG)
-app.secret_key = b'9WvmP6JFnYzAEFnsj2vxXJDEFGHXUhjg'
-app.permanent_session_lifetime = datetime.timedelta(minutes=60)
-app.register_blueprint(api, url_prefix='/api')
-app.logger.handlers.clear()
+app = FastAPI()
+app.include_router(instance.router)
+app.include_router(creds.router)
+app.include_router(technical.router)
