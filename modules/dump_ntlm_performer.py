@@ -28,7 +28,7 @@ class DumpNTLMPerformer:
         if just_dc_user is not None:
             process_args.extend(['--just-dc-user', just_dc_user])
 
-        logging.info(f'Run dump ntlm process session_name: {session_name}')
+        logging.info(f'Run dump ntlm process {process_args}')
 
         subprocess.Popen(
             process_args,

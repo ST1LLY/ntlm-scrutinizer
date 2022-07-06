@@ -12,8 +12,9 @@ import os
 import re
 from typing import Tuple, Any
 
-from enviroment import NTLM_HASHES_DIR
+from enviroment import NTLM_HASHES_DIR, APP_CONFIG
 from modules.dump_secrets import DumpSecrets
+from modules.aes_cipher import AESCipher
 
 
 def parse_target(target: str) -> Tuple[str, str, str, str]:
@@ -39,6 +40,8 @@ def parse_target(target: str) -> Tuple[str, str, str, str]:
         raise Exception(f'{target} is wrong! It must be according with pattern: {match_pattern}')
 
     domain, username, password, remote_name = matched_result.groups('')
+
+    password = AESCipher(APP_CONFIG['aes_256_key']).decrypt(password)
 
     # In case the password contains '@'
     if '@' in remote_name:
