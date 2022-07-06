@@ -5,15 +5,19 @@ Author:
     Konstantin S. (https://github.com/ST1LLY)
 """
 
+import argparse
+import logging
+import sys
+import os
+import re
 from typing import Tuple, Any
 
-from .dump_secrets import DumpSecrets
-import re
-import os
+from enviroment import NTLM_HASHES_DIR
+from modules.dump_secrets import DumpSecrets
 
 
 def parse_target(target: str) -> Tuple[str, str, str, str]:
-    """ Helper function to parse target information. The expected format is:
+    """Helper function to parse target information. The expected format is:
 
     <DOMAIN></USERNAME><:PASSWORD>@HOSTNAME
 
@@ -71,17 +75,34 @@ class DumpSecretsNtlm(DumpSecrets):
         """
         domain, username, password, remote_name = parse_target(target)
         self.__options = Options(
-            dict(aesKey=None, bootkey=None, dc_ip=None, debug=False, exec_method='smbexec',
-                 hashes=hashes,
-                 history=False,
-                 just_dc=True, just_dc_ntlm=True,
-                 just_dc_user=just_dc_user,
-                 k=False,
-                 keytab=None,
-                 no_pass=False,
-                 ntds=None, outputfile=output_file, pwd_last_set=False, resumefile=None, sam=None, security=None,
-                 system=None, target=target, target_ip=remote_name, ts=False,
-                 use_vss=False, user_status=False))
+            dict(
+                aesKey=None,
+                bootkey=None,
+                dc_ip=None,
+                debug=False,
+                exec_method='smbexec',
+                hashes=hashes,
+                history=False,
+                just_dc=True,
+                just_dc_ntlm=True,
+                just_dc_user=just_dc_user,
+                k=False,
+                keytab=None,
+                no_pass=False,
+                ntds=None,
+                outputfile=output_file,
+                pwd_last_set=False,
+                resumefile=None,
+                sam=None,
+                security=None,
+                system=None,
+                target=target,
+                target_ip=remote_name,
+                ts=False,
+                use_vss=False,
+                user_status=False,
+            )
+        )
 
         DumpSecrets.__init__(self, domain, username, password, remote_name, self.__options)
 
@@ -101,3 +122,33 @@ class DumpSecretsNtlm(DumpSecrets):
             if os.path.isfile(file_path):
                 return file_path
         raise Exception("Dumped file hasn't found")
+
+
+parser = argparse.ArgumentParser(
+    description='NTLM-hashes dumper', formatter_class=argparse.ArgumentDefaultsHelpFormatter
+)
+parser.add_argument('--target', help='[[domain/]username[:password]@]<targetName or address>', type=str, required=True)
+parser.add_argument('--session-name', help='Unic session name', type=str, required=True)
+parser.add_argument(
+    '--just-dc-user', help='Extract only NTDS.DIT data for the user specified', required=False, type=str, default=None
+)
+
+
+if __name__ == '__main__':
+    root = logging.getLogger()
+    root.setLevel(logging.INFO)
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    root.addHandler(handler)
+
+    args = parser.parse_args()
+
+    output_file = os.path.join(NTLM_HASHES_DIR, args.session_name)
+
+    dump_secrets_ntlm = DumpSecretsNtlm(target=args.target, output_file=output_file, just_dc_user=args.just_dc_user)
+    hashes_file_path = dump_secrets_ntlm.get_ntlm_hashes()
+    logging.info('Finished')
+    logging.info(f'NTLM-hashes dump file: {hashes_file_path}')

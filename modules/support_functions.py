@@ -1,12 +1,13 @@
 """
 Support functions for the main logic
 """
+import configparser
 import logging
-from logging.handlers import RotatingFileHandler
-
-from colorlog import ColoredFormatter
-from typing import List, Optional
 import os
+from logging.handlers import RotatingFileHandler
+from typing import List, Optional
+import uuid
+from colorlog import ColoredFormatter
 
 
 def read_file_to_lst(file_path: str) -> List[str]:
@@ -89,3 +90,42 @@ def init_custome_logger(
     logger.addHandler(file_handler)
     logger.addHandler(error_file_handler)
     return logger
+
+
+def get_config(config_path: str, config_section: str) -> dict:
+    """
+    Getting a config section from a config file
+    """
+    config = configparser.RawConfigParser(comment_prefixes=('#',))
+    config.read(config_path, encoding='utf-8')
+    output_config = config[config_section]
+    return dict(output_config)
+
+
+def check_if_compiled(file_path: str) -> str:
+    if os.path.exists(file_path):
+        return file_path
+    file_path_compiled = file_path + 'c'
+    if os.path.exists(file_path_compiled):
+        return file_path_compiled
+    raise Exception(f'{file_path} or {file_path_compiled} do not exist!')
+
+
+def generate_uuid() -> str:
+    return str(uuid.uuid4())
+
+
+def get_last_file_line(file_path: str) -> str:
+    with open(file_path, 'rb') as f:
+        try:  # catch OSError in case of a one line file
+            f.seek(-2, os.SEEK_END)
+            while f.read(1) != b'\n':
+                f.seek(-2, os.SEEK_CUR)
+        except OSError:
+            f.seek(0)
+        return f.readline().decode()
+
+
+def delete_if_exists(file_path: str):
+    if os.path.exists(file_path):
+        os.remove(file_path)

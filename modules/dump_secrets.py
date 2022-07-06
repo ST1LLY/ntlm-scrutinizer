@@ -83,7 +83,7 @@ class DumpSecrets:
                             # target system. We just have a last resort. Hope we have tickets cached and that they
                             # will work
                             logging.debug('SMBConnection didn\'t work, hoping Kerberos will help (%s)' % str(e))
-                            raise
+                        raise
 
                     self.__remoteOps = RemoteOperations(self.__smbConnection, self.__doKerberos, self.__kdcHost)
                     self.__remoteOps.setExecMethod(self.__options.exec_method)

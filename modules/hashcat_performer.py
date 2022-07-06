@@ -300,7 +300,7 @@ class HashcatPerformer:
         return session_name
 
     @staticmethod
-    def run_benchmark(is_force: bool = True) -> dict[str, str]:
+    def run_benchmark(is_force: bool = True) -> dict[str, str | list]:
         """
         Run hashcat -b -m 1000
 

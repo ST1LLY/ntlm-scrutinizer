@@ -14,12 +14,14 @@ Neither contributor incur any responsibility for any using it.
 
 Based on [impacket](https://github.com/SecureAuthCorp/impacket) and [hashcat](https://github.com/hashcat/hashcat), the tool provides the following functions:
 
-- Dump NTLM-hashes from AD and run an instance for bruting.
-- Re-run a broken instance from the restore file by session name.
-- Get information about a running instance by session name.
-- Get information about all running instances.
-- Get bruted credentials by session name.
-- Run benchmark for bruting.
+- Dump NTLM-hashes from AD
+- Run bruting of dumped NTLM-hashes.
+- Re-run a broken instance of bruting from the restore file by session name.
+- Get information about a running dump instance by session name.
+- Get information about a running brute instance by session name.
+- Get information about all running brute instances.
+- Get bruted credentials by brute session name.
+- Run benchmark of bruting.
 
 Check out detailed information about arguments and methods in Swagger.
 

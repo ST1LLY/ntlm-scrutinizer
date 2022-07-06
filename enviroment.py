@@ -2,6 +2,7 @@
 Shared environment constants for app
 """
 import os
+import modules.support_functions as sup_f
 
 # Get this file full path
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -23,3 +24,7 @@ HASHCAT_RULES_DIR = os.path.join(ROOT_DIR, 'files', 'rules')
 
 # The path to the dir with ntlm hashes
 NTLM_HASHES_DIR = os.path.join(ROOT_DIR, 'files', 'ntlm_hashes')
+
+DUMP_NTLM_SCRIPT_PATH = os.path.join(ROOT_DIR, 'dump_secrets_ntlm.py')
+
+
