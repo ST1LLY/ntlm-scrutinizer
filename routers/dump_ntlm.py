@@ -18,7 +18,11 @@ class DumpNTLMSessionData(BaseModel):
 
 
 class DumpNTLMParams(BaseModel):
-    target: str = Field(default=..., title='The format is [[domain/]username[:password]@]<targetName or address>')
+    target: str = Field(
+        default=...,
+        title='The format is [[domain/]username[:password]@]<targetName or address>. '
+              'Password must be encrypted by aes_256_key from settings.conf',
+    )
     just_dc_user: str | None = Field(default=None, title='The specified AD user')
 
 
