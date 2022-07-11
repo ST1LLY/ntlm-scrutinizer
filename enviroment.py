@@ -30,4 +30,3 @@ DUMP_NTLM_SCRIPT_PATH = os.path.join(ROOT_DIR, 'dump_secrets_ntlm.py')
 # The path to app config file
 CONFIG_PATH = os.path.join(ROOT_DIR, 'configs', 'settings.conf')
 APP_CONFIG = sup_f.get_config(CONFIG_PATH, 'APP')
-print(APP_CONFIG)

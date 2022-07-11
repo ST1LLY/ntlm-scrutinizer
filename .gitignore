@@ -1,3 +1,5 @@
+/dev_selfsigned.crt
+/dev_selfsigned.key
 configs/settings.conf
 .idea/
 files/restores/*

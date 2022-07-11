@@ -43,7 +43,7 @@ The information below provided for:
 
 Install hashcat:
 
-```
+```bash
 sudo apt update
 sudo apt install hashcat
 ```
@@ -56,7 +56,7 @@ Download the [source](https://github.com/ST1LLY/ntlm-scrutinizer) and unpack it.
 
 Create Python virtual environment and install dependencies from requirements.txt:
 
-```
+```shell
 pip install -r .\requirements.txt
 ```
 
@@ -68,17 +68,25 @@ Put in files/rules a necessary rule, ex. [InsidePro-PasswordsPro.rule](https://g
 
 
 
-Open project folder and run app:
+Open project folder
 
+create self-signed certificate:
+
+```bash
+sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout dev_selfsigned.key -out dev_selfsigned.crt
 ```
- uvicorn app:app --reload --host 0.0.0.0 --port 5000
+
+run app:
+
+```shell
+uvicorn app:app --reload --host 0.0.0.0 --port 5000 --ssl-keyfile dev_selfsigned.key --ssl-certfile dev_selfsigned.crt
 ```
 
 
 
-Open Swagger on http://localhost:5000/docs
+Open Swagger on [https://localhost:5000/docs](https://localhost:5000/docs) 
 
-Open API specification on http://localhost:5000/redoc
+Open API specification on [https://localhost:5000/redoc](https://localhost:5000/redoc)
 
 
 
