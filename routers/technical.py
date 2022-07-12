@@ -2,13 +2,14 @@ import os
 from enum import Enum
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 import modules.support_functions as sup_f
-from enviroment import LOGS_DIR
 from .brute_ntlm import HashcatPerformer
+from .common import common_query_session_params
 from .dump_ntlm import DumpNTLMPerformer
+from enviroment import LOGS_DIR
 
 router = APIRouter(
     prefix='/technical',
@@ -47,21 +48,30 @@ def run_benchmark() -> dict[str, str]:
     return HashcatPerformer().run_benchmark()
 
 
-@router.get('/clean', description='Clean all data of dumping and bruting')
-def clean(session_dump: UUID, session_brute: UUID) -> str:
+@router.get('/clean-dump', description='Clean log data of dumping')
+def clean_dump(commons: dict[str, UUID] = Depends(common_query_session_params)) -> str:
+    session_name = str(commons['session_name'])
+
     for instance in DumpNTLMPerformer.instances:
-        if instance['session_name'] == session_dump:
+        if instance['session_name'] == session_name:
             DumpNTLMPerformer.instances.remove(instance)
             break
-    sup_f.delete_if_exists(os.path.join(LOGS_DIR, f'ntlm_dumping_{session_dump}.log'))
-    sup_f.delete_if_exists(os.path.join(LOGS_DIR, f'ntlm_dumping_{session_dump}_errors.log'))
+    sup_f.delete_if_exists(os.path.join(LOGS_DIR, f'ntlm_dumping_{session_name}.log'))
+    sup_f.delete_if_exists(os.path.join(LOGS_DIR, f'ntlm_dumping_{session_name}_errors.log'))
+
+    return 'success'
+
+
+@router.get('/clean-brute', description='Clean log data of bruting')
+def clean_brute(commons: dict[str, UUID] = Depends(common_query_session_params)) -> str:
+    session_name = str(commons['session_name'])
 
     for instance in HashcatPerformer.instances:
-        if instance['session_name'] == session_brute:
+        if instance['session_name'] == session_name:
             HashcatPerformer.instances.remove(instance)
             break
 
-    sup_f.delete_if_exists(os.path.join(LOGS_DIR, f'hashcat_{session_brute}.log'))
-    sup_f.delete_if_exists(os.path.join(LOGS_DIR, f'hashcat_{session_brute}_errors.log'))
+    sup_f.delete_if_exists(os.path.join(LOGS_DIR, f'hashcat_{session_name}.log'))
+    sup_f.delete_if_exists(os.path.join(LOGS_DIR, f'hashcat_{session_name}_errors.log'))
 
     return 'success'
