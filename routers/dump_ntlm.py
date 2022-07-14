@@ -1,8 +1,10 @@
+import os
 from enum import Enum
 from uuid import UUID
-
-from fastapi import APIRouter, Depends
+import re
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
+from starlette.responses import FileResponse
 
 from modules.dump_ntlm_performer import DumpNTLMPerformer
 from .common import common_query_session_params
@@ -21,7 +23,7 @@ class DumpNTLMParams(BaseModel):
     target: str = Field(
         default=...,
         title='The format is [[domain/]username[:password]@]<targetName or address>. '
-              'Password must be encrypted by aes_256_key from settings.conf',
+        'Password must be encrypted by aes_256_key from settings.conf',
     )
     just_dc_user: str | None = Field(default=None, title='The specified AD user')
 
@@ -52,3 +54,13 @@ def run(data: DumpNTLMParams) -> dict[str, str]:
 )
 def status(commons: dict[str, UUID] = Depends(common_query_session_params)) -> dict[str, str]:
     return DumpNTLMPerformer().get_instance_status(str(commons['session_name']))
+
+
+@router.get('/download-hashes', description='Download file cointains dumped NTLM-hashes')
+def download_hashes(file_path: str) -> FileResponse:
+    if re.match(
+        r'/home/user/ntlm-scrutinizer/files/ntlm_hashes/[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}\.ntds',
+        file_path,
+    ) and os.path.exists(file_path):
+        return FileResponse(path=file_path, filename=os.path.basename(file_path), media_type='application/octet-stream')
+    raise HTTPException(status_code=404, detail='File not found')
