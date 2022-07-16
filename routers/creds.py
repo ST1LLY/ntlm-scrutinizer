@@ -1,18 +1,25 @@
+"""
+The module contains routers for working with bruted credentials
+
+Author:
+    Konstantin S. (https://github.com/ST1LLY)
+"""
 import logging
 import os
 from enum import Enum
+from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
-from uuid import UUID
-import modules.support_functions as sup_f
+
+import modules.support_functions as sup_f   # pylint: disable=import-error
 from enviroment import (
     LOGS_DIR,
     HASHCAT_RESTORES_DIR,
     HASHCAT_BRUTED_HASHES_DIR,
     NTLM_HASHES_DIR,
-)
-from modules.hashcat_performer import HashcatPerformer
+)   # pylint: disable=import-error
+from modules.hashcat_performer import HashcatPerformer   # pylint: disable=import-error
 from .common import common_query_session_params
 
 HashcatPerformer().set_working_folders(
@@ -26,16 +33,27 @@ router = APIRouter(
 
 
 class CredsStatus(str, Enum):
-    found = 'found'
-    not_found = 'not_found'
+    """
+    The values of status field in information about bruted creds
+    """
+
+    FOUND = 'found'
+    NOT_FOUND = 'not_found'
 
 
 class BrutedAcc(BaseModel):
+    """
+    The params of a bruted acc
+    """
+
     login: str = Field(default=..., title='The login of a bruted acc')
     password: str = Field(default=..., title='The password of a bruted acc')
 
 
 class BrutedCredsData(BaseModel):
+    """
+    The information of bruted accs
+    """
     status: CredsStatus = Field(default=..., title='The status of bruted accs')
     creds: list[BrutedAcc] = Field(default=..., title='The list of bruted accs')
 
@@ -46,14 +64,17 @@ class BrutedCredsData(BaseModel):
     response_model=BrutedCredsData,
 )
 def bruted(commons: dict[str, UUID] = Depends(common_query_session_params)) -> dict[str, str | list[dict[str, str]]]:
-
+    """
+    See the description param of router decorator
+    """
     # Trying to find the output file with bruted hashes
     bruted_hashes_file_path = sup_f.try_find_file_in_dir(HASHCAT_BRUTED_HASHES_DIR, str(commons['session_name']))
 
     if bruted_hashes_file_path is None:
         logging.error(
-            f"The bruted hashes file for session_name: {commons['session_name']} in "
-            f'{HASHCAT_BRUTED_HASHES_DIR} not found'
+            'The bruted hashes file for session_name: %s in %s not found',
+            commons['session_name'],
+            HASHCAT_BRUTED_HASHES_DIR,
         )
 
         return {'status': 'not_found', 'creds': []}
@@ -61,7 +82,7 @@ def bruted(commons: dict[str, UUID] = Depends(common_query_session_params)) -> d
     splitted_file_name = os.path.basename(bruted_hashes_file_path).split('___')
 
     if len(splitted_file_name) != 2:
-        logging.error(f"The file name of file {bruted_hashes_file_path} couldn't been splitted to 2 part by '___'")
+        logging.error("The file name of file %s couldn't been splitted to 2 part by '___'", bruted_hashes_file_path)
         return {'status': 'not_found', 'creds': []}
 
     # Trying to find used file contained ntlm hashes for this session
@@ -69,8 +90,9 @@ def bruted(commons: dict[str, UUID] = Depends(common_query_session_params)) -> d
 
     if ntlm_hashes_file_path is None:
         logging.error(
-            f"The used file contained ntlm hashes for session_name: {commons['session_name']} in "
-            f'{NTLM_HASHES_DIR} not found'
+            'The used file contained ntlm hashes for session_name: %s in %s not found',
+            commons['session_name'],
+            NTLM_HASHES_DIR,
         )
 
         return {'status': 'not_found', 'creds': []}
@@ -85,7 +107,7 @@ def bruted(commons: dict[str, UUID] = Depends(common_query_session_params)) -> d
         for ntlm_hash in ntlm_hashes:
             if hash_v in ntlm_hash:
                 creads.append({'login': ntlm_hash.split(':')[0], 'password': password})
-    logging.info(f"Got {len(creads)} creds for session_name: {commons['session_name']}")
+    logging.info('Got %d creds for session_name: %s', len(creads), commons['session_name'])
     if not creads:
         return {'status': 'not_found', 'creds': []}
 

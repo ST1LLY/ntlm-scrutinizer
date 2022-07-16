@@ -1,47 +1,27 @@
 """
-Module to perform NTLM-hashes brute functionality
+Module to perform NTLM-hashes dump functionality
 
 Author:
     Konstantin S. (https://github.com/ST1LLY)
 """
 import logging
 import os
-import sys
 import subprocess
-from enviroment import LOGS_DIR, DUMP_NTLM_SCRIPT_PATH, ROOT_DIR
+import sys
+
 import modules.support_functions as sup_f
+from enviroment import LOGS_DIR, DUMP_NTLM_SCRIPT_PATH
 
 
 class DumpNTLMPerformer:
+    """
+    Class to perform dumping NTLM hashes functionality
+    """
+
     instances: list = []
 
     def __init__(self) -> None:
         pass
-
-    @staticmethod
-    def run_instance(target: str, just_dc_user: str | None) -> str:
-        session_name = sup_f.generate_uuid()
-        file_out_path = os.path.join(LOGS_DIR, f'ntlm_dumping_{session_name}.log')
-        file_err_path = os.path.join(LOGS_DIR, f'ntlm_dumping_{session_name}_errors.log')
-
-        process_args = [sys.executable, DUMP_NTLM_SCRIPT_PATH, '--target', target, '--session-name', session_name]
-        if just_dc_user is not None:
-            process_args.extend(['--just-dc-user', just_dc_user])
-
-        logging.info(f'Run dump ntlm process {process_args}')
-
-        subprocess.Popen(
-            process_args,
-            stdout=open(file_out_path, 'w'),
-            stdin=subprocess.PIPE,
-            stderr=open(file_err_path, 'w')
-        )
-
-        DumpNTLMPerformer.instances.append(
-            {'session_name': session_name, 'file_out_path': file_out_path, 'file_err_path': file_err_path}
-        )
-
-        return session_name
 
     @staticmethod
     def __is_error(file_err_path: str) -> bool:
@@ -50,7 +30,57 @@ class DumpNTLMPerformer:
         return True
 
     @staticmethod
-    def get_instance_status(session_name: str) -> dict[str, str]:
+    def __check_error_or_finished(file_out_path: str, file_err_path: str) -> dict:
+        if 'NTLM-hashes dump file' in (last_line := sup_f.get_last_file_line(file_out_path)):
+            return {'status': 'finished', 'err_desc': '', 'hashes_file_path': last_line.split(':')[-1].strip()}
+
+        if DumpNTLMPerformer.__is_error(file_err_path):
+            return {
+                'status': 'error',
+                'err_desc': f'Check file {file_err_path} for additional info',
+                'hashes_file_path': '',
+            }
+        return {}
+
+    @staticmethod
+    def run_instance(target: str, just_dc_user: str | None) -> str:
+        """
+        Run the instance of bruting process
+
+        Args:
+            target (str): The format is [[domain/]username[:password]@]<targetName or address>
+            just_dc_user (str | None): The specified AD user
+
+        Returns:
+            str: session name
+        """
+        session_name = sup_f.generate_uuid()
+        file_out_path = os.path.join(LOGS_DIR, f'ntlm_dumping_{session_name}.log')
+        file_err_path = os.path.join(LOGS_DIR, f'ntlm_dumping_{session_name}_errors.log')
+
+        process_args = [sys.executable, DUMP_NTLM_SCRIPT_PATH, '--target', target, '--session-name', session_name]
+        if just_dc_user is not None:
+            process_args.extend(['--just-dc-user', just_dc_user])
+
+        logging.info('Run dump ntlm process %s', process_args)
+
+        # We should interact with the run process further and can't use with statement here
+        # pylint: disable=R1732
+        subprocess.Popen(
+            process_args,
+            stdout=open(file_out_path, 'w', encoding='utf-8'),
+            stdin=subprocess.PIPE,
+            stderr=open(file_err_path, 'w', encoding='utf-8'),
+        )
+
+        DumpNTLMPerformer.instances.append(
+            {'session_name': session_name, 'file_out_path': file_out_path, 'file_err_path': file_err_path}
+        )
+
+        return session_name
+
+    @classmethod
+    def get_instance_status(cls, session_name: str) -> dict[str, str]:
         """
 
         Args:
@@ -62,17 +92,6 @@ class DumpNTLMPerformer:
                 err_desc: error description if status = 'error'
                 hashes_file_path: path to file with NTLM-hashes if status = 'finished'
         """
-        def check_error_or_finished(file_out_path: str, file_err_path: str) -> dict:
-            if 'NTLM-hashes dump file' in (last_line := sup_f.get_last_file_line(file_out_path)):
-                return {'status': 'finished', 'err_desc': '', 'hashes_file_path': last_line.split(':')[-1].strip()}
-
-            if DumpNTLMPerformer.__is_error(file_err_path):
-                return {
-                    'status': 'error',
-                    'err_desc': f'Check file {file_err_path} for additional info',
-                    'hashes_file_path': '',
-                }
-            return {}
 
         is_instance_found = False
 
@@ -87,7 +106,7 @@ class DumpNTLMPerformer:
                 is_instance_found = True
                 break
 
-        if status := check_error_or_finished(file_out_path, file_err_path):
+        if status := cls.__check_error_or_finished(file_out_path, file_err_path):
             return status
 
         if is_instance_found:

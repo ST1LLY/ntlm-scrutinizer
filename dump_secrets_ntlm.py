@@ -12,9 +12,9 @@ import os
 import re
 from typing import Tuple, Any
 
-from enviroment import NTLM_HASHES_DIR, APP_CONFIG
-from modules.dump_secrets import DumpSecrets
-from modules.aes_cipher import AESCipher
+from enviroment import NTLM_HASHES_DIR, APP_CONFIG   # pylint: disable=import-error
+from modules.dump_secrets import DumpSecrets  # type: ignore # pylint: disable=import-error
+from modules.aes_cipher import AESCipher   # pylint: disable=import-error
 
 
 def parse_target(target: str) -> Tuple[str, str, str, str]:
@@ -51,7 +51,7 @@ def parse_target(target: str) -> Tuple[str, str, str, str]:
     return domain, username, password, remote_name
 
 
-class Options(object):
+class Options:   # pylint: disable=too-few-public-methods
     """
     Source:
         https://stackoverflow.com/a/2466207
@@ -61,11 +61,15 @@ class Options(object):
         for dictionary in initial_data:
             for key in dictionary:
                 setattr(self, key, dictionary[key])
-        for key in kwargs:
+        for key in kwargs:   # pylint: disable=consider-using-dict-items
             setattr(self, key, kwargs[key])
 
 
-class DumpSecretsNtlm(DumpSecrets):
+class DumpSecretsNtlm(DumpSecrets):   # pylint: disable=too-few-public-methods
+    """
+    Wrapper for DumpSecrets
+    """
+
     def __init__(self, target: str, output_file: str, hashes: str = None, just_dc_user: str = None):
         """
         Class for dumping ntlm-hashes
@@ -149,9 +153,11 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    output_file = os.path.join(NTLM_HASHES_DIR, args.session_name)
-
-    dump_secrets_ntlm = DumpSecretsNtlm(target=args.target, output_file=output_file, just_dc_user=args.just_dc_user)
+    dump_secrets_ntlm = DumpSecretsNtlm(
+        target=args.target,
+        output_file=os.path.join(NTLM_HASHES_DIR, args.session_name),
+        just_dc_user=args.just_dc_user,
+    )
     hashes_file_path = dump_secrets_ntlm.get_ntlm_hashes()
     logging.info('Finished')
-    logging.info(f'NTLM-hashes dump file: {hashes_file_path}')
+    logging.info('NTLM-hashes dump file: %s', hashes_file_path)

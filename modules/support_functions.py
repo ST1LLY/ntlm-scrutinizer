@@ -14,8 +14,8 @@ def read_file_to_lst(file_path: str) -> List[str]:
     """
     read file content to list
     """
-    with open(file_path) as f:
-        return f.read().splitlines()
+    with open(file_path, encoding='utf-8') as file:
+        return file.read().splitlines()
 
 
 def get_file_names_in_dir(dir_path: str) -> list:
@@ -50,10 +50,10 @@ def init_custome_logger(
     all_log_file_path: str,
     error_log_file_path: str,
     logging_level: str = 'DEBUG',
-    console_format: str = '%(process)s %(thread)s: %(asctime)s - %(filename)s:%(lineno)d - %(funcName)s -%(log_color)s '
-    '%(levelname)s %(reset)s - %(message)s',
-    file_format: str = '%(process)s %(thread)s: %(asctime)s - %(filename)s:%(lineno)d - %(funcName)s - %(levelname)s - '
-    '%(message)s',
+    console_format: str = '%(process)s %(thread)s: %(asctime)s - %(filename)s:%(lineno)d - %(funcName)s -%(log_color)s'
+    ' %(levelname)s %(reset)s - %(message)s',
+    file_format: str = '%(process)s %(thread)s: %(asctime)s - %(filename)s:%(lineno)d - %(funcName)s - %(levelname)s -'
+    ' %(message)s',
 ) -> logging.Logger:
     """
     Creating custom logger
@@ -102,7 +102,15 @@ def get_config(config_path: str, config_section: str) -> dict:
     return dict(output_config)
 
 
-def check_if_compiled(file_path: str) -> str:
+def get_path_if_compiled(file_path: str) -> str:
+    """
+    Check if the file was compiled and return the full existing path .py(c)
+    Args:
+        file_path (str) The path to .py file
+
+    Returns:
+        str: The path with .py(c)
+    """
     if os.path.exists(file_path):
         return file_path
     file_path_compiled = file_path + 'c'
@@ -112,20 +120,42 @@ def check_if_compiled(file_path: str) -> str:
 
 
 def generate_uuid() -> str:
+    """
+    Generate new uuid4
+    """
     return str(uuid.uuid4())
 
 
 def get_last_file_line(file_path: str) -> str:
-    with open(file_path, 'rb') as f:
+    """
+    Get last line of file
+
+    https://stackoverflow.com/a/54278929/14642295
+    Args:
+        file_path (str): full path to file
+
+    Returns:
+        str: the last line of file
+    """
+    with open(file_path, 'rb') as file:
         try:  # catch OSError in case of a one line file
-            f.seek(-2, os.SEEK_END)
-            while f.read(1) != b'\n':
-                f.seek(-2, os.SEEK_CUR)
+            file.seek(-2, os.SEEK_END)
+            while file.read(1) != b'\n':
+                file.seek(-2, os.SEEK_CUR)
         except OSError:
-            f.seek(0)
-        return f.readline().decode()
+            file.seek(0)
+        return file.readline().decode()
 
 
-def delete_if_exists(file_path: str):
+def delete_if_exists(file_path: str) -> None:
+    """
+    Delete the file if exists
+
+    Args:
+        file_path (str): full path to file
+
+    Returns:
+        None
+    """
     if os.path.exists(file_path):
         os.remove(file_path)

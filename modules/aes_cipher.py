@@ -3,30 +3,61 @@ https://stackoverflow.com/a/21928790/14642295
 """
 import base64
 import hashlib
+
 from Crypto import Random
 from Crypto.Cipher import AES
 
 
-class AESCipher(object):
+class AESCipher:
+    """
+    Class for AES ciphering
+    """
+
     def __init__(self, key: str) -> None:
-        self.bs = AES.block_size
+        self.block_size = AES.block_size
         self.key = hashlib.sha256(key.encode()).digest()
 
     def encrypt(self, raw_data: str) -> str:
-        raw = self._pad(raw_data)
-        iv = Random.new().read(AES.block_size)
-        cipher = AES.new(self.key, AES.MODE_CBC, iv)
-        return base64.b64encode(iv + cipher.encrypt(raw.encode())).decode('utf-8')
+        """
+        Encrypt string
+
+        Args:
+            raw_data (str): string for encryption
+
+        Returns:
+            str: encrypted string
+        """
+        raw = self.__pad(raw_data)
+        init_vector = Random.new().read(AES.block_size)
+        cipher = AES.new(self.key, AES.MODE_CBC, init_vector)
+        return base64.b64encode(init_vector + cipher.encrypt(raw.encode())).decode('utf-8')
 
     def decrypt(self, enc_data: str) -> str:
-        enc = base64.b64decode(enc_data)
-        iv = enc[: AES.block_size]
-        cipher = AES.new(self.key, AES.MODE_CBC, iv)
-        return self._unpad(cipher.decrypt(enc[AES.block_size :])).decode('utf-8')
+        """
+        Decrypt string
 
-    def _pad(self, s: str) -> str:
-        return s + (self.bs - len(s) % self.bs) * chr(self.bs - len(s) % self.bs)
+        Args:
+            enc_data (str): encrypted string
+
+        Returns:
+            str: decrypted string
+        """
+        enc = base64.b64decode(enc_data)
+        init_vector = enc[: AES.block_size]
+        cipher = AES.new(self.key, AES.MODE_CBC, init_vector)
+        return self.__unpad(cipher.decrypt(enc[AES.block_size :])).decode('utf-8')
+
+    def __pad(self, string: str) -> str:
+        """
+        Padding
+        """
+        return string + (self.block_size - len(string) % self.block_size) * chr(
+            self.block_size - len(string) % self.block_size
+        )
 
     @staticmethod
-    def _unpad(s: bytes) -> bytes:
-        return s[: -ord(s[len(s) - 1 :])]
+    def __unpad(string: bytes) -> bytes:
+        """
+        Unpadding
+        """
+        return string[: -ord(string[len(string) - 1 :])]

@@ -1,12 +1,14 @@
+# type: ignore
+# pylint: skip-file
 """
-Based on
+Based on source mostly as it is
 https://github.com/SecureAuthCorp/impacket/blob/master/examples/secretsdump.py
 """
 import logging
 import os
 
-from impacket.smbconnection import SMBConnection
 from impacket.examples.secretsdump import LocalOperations, RemoteOperations, SAMHashes, LSASecrets, NTDSHashes
+from impacket.smbconnection import SMBConnection
 
 
 class DumpSecrets:
@@ -51,8 +53,15 @@ class DumpSecrets:
     def connect(self):
         self.__smbConnection = SMBConnection(self.__remoteName, self.__remoteHost)
         if self.__doKerberos:
-            self.__smbConnection.kerberosLogin(self.__username, self.__password, self.__domain, self.__lmhash,
-                                               self.__nthash, self.__aesKey, self.__kdcHost)
+            self.__smbConnection.kerberosLogin(
+                self.__username,
+                self.__password,
+                self.__domain,
+                self.__lmhash,
+                self.__nthash,
+                self.__aesKey,
+                self.__kdcHost,
+            )
         else:
             self.__smbConnection.login(self.__username, self.__password, self.__domain, self.__lmhash, self.__nthash)
 
@@ -69,6 +78,7 @@ class DumpSecrets:
                         self.__noLMHash = localOperations.checkNoLMHashPolicy()
                 else:
                     import binascii
+
                     bootKey = binascii.unhexlify(self.__bootkey)
 
             else:
@@ -82,7 +92,7 @@ class DumpSecrets:
                             # SMBConnection failed. That might be because there was no way to log into the
                             # target system. We just have a last resort. Hope we have tickets cached and that they
                             # will work
-                            logging.debug('SMBConnection didn\'t work, hoping Kerberos will help (%s)' % str(e))
+                            logging.debug("SMBConnection didn't work, hoping Kerberos will help (%s)" % str(e))
                         raise
 
                     self.__remoteOps = RemoteOperations(self.__smbConnection, self.__doKerberos, self.__kdcHost)
@@ -94,12 +104,16 @@ class DumpSecrets:
                         self.__noLMHash = self.__remoteOps.checkNoLMHashPolicy()
                 except Exception as e:
                     self.__canProcessSAMLSA = False
-                    if str(e).find('STATUS_USER_SESSION_DELETED') and os.getenv('KRB5CCNAME') is not None \
-                            and self.__doKerberos is True:
+                    if (
+                        str(e).find('STATUS_USER_SESSION_DELETED')
+                        and os.getenv('KRB5CCNAME') is not None
+                        and self.__doKerberos is True
+                    ):
                         # Giving some hints here when SPN target name validation is set to something different to Off
                         # This will prevent establishing SMB connections using TGS for SPNs different to cifs/
                         logging.error(
-                            'Policy SPN target name validation might be restricting full DRSUAPI dump. Try -just-dc-user')
+                            'Policy SPN target name validation might be restricting full DRSUAPI dump. Try -just-dc-user'
+                        )
                     else:
                         logging.error('RemoteOperations failed: %s' % str(e))
                     raise
@@ -125,8 +139,9 @@ class DumpSecrets:
                     else:
                         SECURITYFileName = self.__securityHive
 
-                    self.__LSASecrets = LSASecrets(SECURITYFileName, bootKey, self.__remoteOps,
-                                                   isRemote=self.__isRemote, history=self.__history)
+                    self.__LSASecrets = LSASecrets(
+                        SECURITYFileName, bootKey, self.__remoteOps, isRemote=self.__isRemote, history=self.__history
+                    )
                     self.__LSASecrets.dumpCachedHashes()
                     if self.__outputFileName is not None:
                         self.__LSASecrets.exportCached(self.__outputFileName)
@@ -136,6 +151,7 @@ class DumpSecrets:
                 except Exception as e:
                     if logging.getLogger().level == logging.DEBUG:
                         import traceback
+
                         traceback.print_exc()
                     logging.error('LSA hashes extraction failed: %s' % str(e))
                     raise
@@ -149,17 +165,27 @@ class DumpSecrets:
             else:
                 NTDSFileName = self.__ntdsFile
 
-            self.__NTDSHashes = NTDSHashes(NTDSFileName, bootKey, isRemote=self.__isRemote, history=self.__history,
-                                           noLMHash=self.__noLMHash, remoteOps=self.__remoteOps,
-                                           useVSSMethod=self.__useVSSMethod, justNTLM=self.__justDCNTLM,
-                                           pwdLastSet=self.__pwdLastSet, resumeSession=self.__resumeFileName,
-                                           outputFileName=self.__outputFileName, justUser=self.justUser,
-                                           printUserStatus=self.__printUserStatus)
+            self.__NTDSHashes = NTDSHashes(
+                NTDSFileName,
+                bootKey,
+                isRemote=self.__isRemote,
+                history=self.__history,
+                noLMHash=self.__noLMHash,
+                remoteOps=self.__remoteOps,
+                useVSSMethod=self.__useVSSMethod,
+                justNTLM=self.__justDCNTLM,
+                pwdLastSet=self.__pwdLastSet,
+                resumeSession=self.__resumeFileName,
+                outputFileName=self.__outputFileName,
+                justUser=self.justUser,
+                printUserStatus=self.__printUserStatus,
+            )
             try:
                 self.__NTDSHashes.dump()
             except Exception as e:
                 if logging.getLogger().level == logging.DEBUG:
                     import traceback
+
                     traceback.print_exc()
                 if str(e).find('ERROR_DS_DRA_BAD_DN') >= 0:
                     # We don't store the resume file if this error happened, since this error is related to lack
@@ -168,23 +194,26 @@ class DumpSecrets:
                     if resumeFile is not None:
                         os.unlink(resumeFile)
                 logging.error(e)
-                if self.justUser and str(e).find("ERROR_DS_NAME_ERROR_NOT_UNIQUE") >= 0:
-                    logging.info("You just got that error because there might be some duplicates of the same name. "
-                                 "Try specifying the domain name for the user as well. It is important to specify it "
-                                 "in the form of NetBIOS domain name/user (e.g. contoso/Administratror).")
+                if self.justUser and str(e).find('ERROR_DS_NAME_ERROR_NOT_UNIQUE') >= 0:
+                    logging.info(
+                        'You just got that error because there might be some duplicates of the same name. '
+                        'Try specifying the domain name for the user as well. It is important to specify it '
+                        'in the form of NetBIOS domain name/user (e.g. contoso/Administratror).'
+                    )
                 elif self.__useVSSMethod is False:
-                    logging.info('Something wen\'t wrong with the DRSUAPI approach. Try again with -use-vss parameter')
+                    logging.info("Something wen't wrong with the DRSUAPI approach. Try again with -use-vss parameter")
                 raise
             self.cleanup()
         except (Exception, KeyboardInterrupt) as e:
             if logging.getLogger().level == logging.DEBUG:
                 import traceback
+
                 traceback.print_exc()
             logging.error(e)
             if self.__NTDSHashes is not None:
                 if isinstance(e, KeyboardInterrupt):
                     while True:
-                        answer = input("Delete resume session file? [y/N] ")
+                        answer = input('Delete resume session file? [y/N] ')
                         if answer.upper() == '':
                             answer = 'N'
                             break

@@ -4,29 +4,27 @@ Module to perform hashcat functionality
 Author:
     Konstantin S. (https://github.com/ST1LLY)
 """
-import os
-import subprocess
 import logging
-import uuid
+import os
 import re
-
-from typing import List
-
-import modules.support_functions as sup_f
+import subprocess
 import time
+import uuid
+
+import modules.support_functions as sup_f   # pylint: disable=import-error
 
 
 class NotAllowedFileName(Exception):
     """
     Raise when restrictions for file names occurred
     """
-    pass
 
 
 class HashcatPerformer:
     """
     Class to perform hashcat functionality
     """
+
     instances: list = []
     output_folder: str
     restores_folder: str
@@ -85,11 +83,7 @@ class HashcatPerformer:
 
         # The part containing info about performing status hasn't been found
         if start_i is None:
-            return {
-                'session_name': certain_instance['session_name'],
-                'state': 'undefined',
-                'status_data': []
-            }
+            return {'session_name': certain_instance['session_name'], 'state': 'undefined', 'status_data': []}
 
         # Collecting information about performing status
         status_data = []
@@ -101,18 +95,11 @@ class HashcatPerformer:
 
             splited = line.split('.:')
             if len(splited) != 2:
-                logging.warning(f"line: {repr(line)} hasn't been splitted to two part")
+                logging.warning("line: %s hasn't been splitted to two part", repr(line))
                 continue
-            status_data.append({
-                'title': splited[0].strip('. \t\n\r'),
-                'value': splited[1].strip(' \t\n\r')
-            })
+            status_data.append({'title': splited[0].strip('. \t\n\r'), 'value': splited[1].strip(' \t\n\r')})
 
-        return {
-            'session_name': certain_instance['session_name'],
-            'state': 'found',
-            'status_data': status_data
-        }
+        return {'session_name': certain_instance['session_name'], 'state': 'found', 'status_data': status_data}
 
     @staticmethod
     def __init_subprocess(session_name: str, process_args: list) -> None:
@@ -124,24 +111,30 @@ class HashcatPerformer:
             process_args (list): params to run subprocess
 
         """
-        logging.info(f'Running subprocess: {process_args}')
+        logging.info('Running subprocess: %s', process_args)
 
         file_out_path = os.path.join(HashcatPerformer.logs_folder, f'hashcat_{session_name}.log')
         file_err_path = os.path.join(HashcatPerformer.logs_folder, f'hashcat_{session_name}_errors.log')
 
-        p = subprocess.Popen(process_args,
-                             stdout=open(file_out_path, 'w'),
-                             stdin=subprocess.PIPE,
-                             stderr=open(file_err_path, 'w'))
+        # We should interact with the run process further and can't use with statement here
+        # pylint: disable=R1732
+        opened_subprocess = subprocess.Popen(
+            process_args,
+            stdout=open(file_out_path, 'w', encoding='utf-8'),
+            stdin=subprocess.PIPE,
+            stderr=open(file_err_path, 'w', encoding='utf-8'),
+        )
 
-        HashcatPerformer.__set_instance({
-            'session_name': session_name,
-            'subprocess': p,
-            'file_out_path': file_out_path,
-            'file_err_path': file_err_path
-        })
+        HashcatPerformer.__set_instance(
+            {
+                'session_name': session_name,
+                'subprocess': opened_subprocess,
+                'file_out_path': file_out_path,
+                'file_err_path': file_err_path,
+            }
+        )
 
-        logging.info(f'Subprocess started with session_name: {session_name}')
+        logging.info('Subprocess started with session_name: %s', session_name)
 
     @staticmethod
     def set_working_folders(output_folder: str, restores_folder: str, logs_folder: str) -> None:
@@ -183,11 +176,7 @@ class HashcatPerformer:
 
         # The instance hasn't been found
         if not certain_instance:
-            return {
-                'session_name': session_name,
-                'state': 'not_found',
-                'status_data': []
-            }
+            return {'session_name': session_name, 'state': 'not_found', 'status_data': []}
 
         return HashcatPerformer.__get_found_instance_info(certain_instance)
 
@@ -211,10 +200,10 @@ class HashcatPerformer:
     def re_run_instance(session_name: str) -> dict[str, str]:
         """
         Re-run instance of hashcat
-        
+
         Args:
             session_name (str): name for hascat session
-        
+
         Returns:
             dict: {
                 'status': 'success' / 'not_found',
@@ -226,29 +215,18 @@ class HashcatPerformer:
 
         # Checking if the restore file for the session exists
         if not os.path.isfile(restore_file_path):
-            return {
-                'status': 'not_found',
-                'session_name': session_name
-            }
+            return {'status': 'not_found', 'session_name': session_name}
         # This restore file exists
-        process_args = [
-            'hashcat',
-            '--restore',
-            f'--restore-file-path={restore_file_path}'
-        ]
+        process_args = ['hashcat', '--restore', f'--restore-file-path={restore_file_path}']
 
         HashcatPerformer.__init_subprocess(session_name, process_args)
 
-        return {
-            'status': 'success',
-            'session_name': session_name
-        }
+        return {'status': 'success', 'session_name': session_name}
 
     @staticmethod
-    def run_instance(hash_file_path: str,
-                     dictionary_file_path: str,
-                     rules_file_path: str,
-                     is_force: bool = True) -> str:
+    def run_instance(
+        hash_file_path: str, dictionary_file_path: str, rules_file_path: str, is_force: bool = True
+    ) -> str:
         """
         Run instance of hashcat
 
@@ -291,10 +269,9 @@ class HashcatPerformer:
             f'--session={session_name}',
             '--restore-file-path=' + restore_file_path,
             '-o',
-            os.path.join(HashcatPerformer.output_folder,
-                         f'{hash_file_name}___{session_name}.txt'),
+            os.path.join(HashcatPerformer.output_folder, f'{hash_file_name}___{session_name}.txt'),
             '--potfile-disable',
-            '--force' if is_force else ''
+            '--force' if is_force else '',
         ]
         HashcatPerformer.__init_subprocess(session_name, process_args)
         return session_name
@@ -316,24 +293,16 @@ class HashcatPerformer:
             }
         """
 
-        process_args = [
-            'hashcat',
-            '-b',
-            '-m',
-            '1000',
-            '--force' if is_force else ''
-        ]
+        process_args = ['hashcat', '-b', '-m', '1000', '--force' if is_force else '']
 
         # Running a benchmark process
-        result = subprocess.run(process_args,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
+        result = subprocess.run(process_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
 
         # Getting output of the process
         out = result.stdout.decode('utf-8')
         err = result.stderr.decode('utf-8')
 
-        logging.info(f'out: {out}')
+        logging.info('out: %s', out)
 
         # Getting started and stopped times of the benchmark
         started_s = re.search(r'Started: (.+)', out, re.MULTILINE)
@@ -344,7 +313,7 @@ class HashcatPerformer:
 
         # If an error has occurred during the benchmark
         if err:
-            logging.error(f'err: {err}')
+            logging.error('err: %s', err)
 
             return {
                 'status': 'error',

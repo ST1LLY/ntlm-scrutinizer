@@ -1,3 +1,9 @@
+"""
+The module contains routers for technical communication
+
+Author:
+    Konstantin S. (https://github.com/ST1LLY)
+"""
 import os
 from enum import Enum
 from uuid import UUID
@@ -5,11 +11,12 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
-import modules.support_functions as sup_f
+import modules.support_functions as sup_f   # pylint: disable=import-error
+from enviroment import LOGS_DIR   # pylint: disable=import-error
+
 from .brute_ntlm import HashcatPerformer
 from .common import common_query_session_params
 from .dump_ntlm import DumpNTLMPerformer
-from enviroment import LOGS_DIR
 
 router = APIRouter(
     prefix='/technical',
@@ -17,18 +24,30 @@ router = APIRouter(
 )
 
 
-class BenchmarStatus(str, Enum):
-    success = 'success'
-    error = 'error'
+class BenchmarkStatus(str, Enum):
+    """
+    The values of status field in information about benchmark
+    """
+
+    SUCCESS = 'success'
+    ERROR = 'error'
 
 
 class BenchmarkData(BaseModel):
-    status: BenchmarStatus = Field(default=..., title='The status of benchmark')
+    """
+    The information of a benchmark
+    """
+
+    status: BenchmarkStatus = Field(default=..., title='The status of benchmark')
     started: str = Field(default=..., title='The datetime of benchmark start')
     stopped: str = Field(default=..., title='The datetime of benchmark stop')
     speeds: list[str] = Field(default=..., title='The speed info of benchmark')
 
-    class Config:
+    class Config:   # pylint: disable=too-few-public-methods
+        """
+        https://pydantic-docs.helpmanual.io/usage/model_config/
+        """
+
         schema_extra = {
             'example': {
                 'status': 'success',
@@ -44,12 +63,18 @@ class BenchmarkData(BaseModel):
     description='Run benchmark for bruting',
     response_model=BenchmarkData,
 )
-def run_benchmark() -> dict[str, str]:
+def run_benchmark() -> dict[str, str | list]:
+    """
+    See the description param of router decorator
+    """
     return HashcatPerformer().run_benchmark()
 
 
 @router.get('/clean-dump', description='Clean log data of dumping')
 def clean_dump(commons: dict[str, UUID] = Depends(common_query_session_params)) -> str:
+    """
+    See the description param of router decorator
+    """
     session_name = str(commons['session_name'])
 
     for instance in DumpNTLMPerformer.instances:
@@ -64,6 +89,9 @@ def clean_dump(commons: dict[str, UUID] = Depends(common_query_session_params)) 
 
 @router.get('/clean-brute', description='Clean log data of bruting')
 def clean_brute(commons: dict[str, UUID] = Depends(common_query_session_params)) -> str:
+    """
+    See the description param of router decorator
+    """
     session_name = str(commons['session_name'])
 
     for instance in HashcatPerformer.instances:
