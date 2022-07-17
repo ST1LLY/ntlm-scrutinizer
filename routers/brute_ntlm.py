@@ -17,8 +17,8 @@ from enviroment import (
     HASHCAT_BRUTED_HASHES_DIR,
     HASHCAT_DICTIONARIES_DIR,
     HASHCAT_RULES_DIR,
-)  # pylint: disable=import-error
-from modules.hashcat_performer import HashcatPerformer  # pylint: disable=import-error
+)
+from modules.hashcat_performer import HashcatPerformer
 from .common import common_query_session_params
 
 HashcatPerformer().set_working_folders(
@@ -97,7 +97,7 @@ class BruteNTLMInstanceInfoData(BruteNTLMSessionData):
 
 
 @router.post(
-    '/run', description='Dump NTLM-hashes from AD and run an instance for bruting', response_model=BruteNTLMSessionData
+    '/run', description='Run an instance for bruting', response_model=BruteNTLMSessionData
 )
 def run(data: RunParams) -> dict[str, str]:
     """
