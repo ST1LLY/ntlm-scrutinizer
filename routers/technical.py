@@ -11,8 +11,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
-import modules.support_functions as sup_f   # pylint: disable=import-error
-from enviroment import LOGS_DIR   # pylint: disable=import-error
+import modules.support_functions as sup_f
+from enviroment import LOGS_DIR
 
 from .brute_ntlm import HashcatPerformer
 from .common import common_query_session_params
@@ -43,7 +43,7 @@ class BenchmarkData(BaseModel):
     stopped: str = Field(default=..., title='The datetime of benchmark stop')
     speeds: list[str] = Field(default=..., title='The speed info of benchmark')
 
-    class Config:   # pylint: disable=too-few-public-methods
+    class Config:
         """
         https://pydantic-docs.helpmanual.io/usage/model_config/
         """

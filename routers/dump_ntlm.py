@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from starlette.responses import FileResponse
 
-from modules.dump_ntlm_performer import DumpNTLMPerformer   # pylint: disable=import-error
+from modules.dump_ntlm_performer import DumpNTLMPerformer
 from .common import common_query_session_params
 
 router = APIRouter(

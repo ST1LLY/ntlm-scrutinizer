@@ -11,7 +11,7 @@ import subprocess
 import time
 import uuid
 
-import modules.support_functions as sup_f   # pylint: disable=import-error
+import modules.support_functions as sup_f
 
 
 class NotAllowedFileName(Exception):

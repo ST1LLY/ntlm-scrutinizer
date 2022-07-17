@@ -12,14 +12,14 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
-import modules.support_functions as sup_f   # pylint: disable=import-error
+import modules.support_functions as sup_f
 from enviroment import (
     LOGS_DIR,
     HASHCAT_RESTORES_DIR,
     HASHCAT_BRUTED_HASHES_DIR,
     NTLM_HASHES_DIR,
-)   # pylint: disable=import-error
-from modules.hashcat_performer import HashcatPerformer   # pylint: disable=import-error
+)
+from modules.hashcat_performer import HashcatPerformer
 from .common import common_query_session_params
 
 HashcatPerformer().set_working_folders(
