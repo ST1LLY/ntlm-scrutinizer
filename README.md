@@ -29,7 +29,9 @@ Check out detailed information about arguments and methods in Swagger.
 
 ## How to test it
 
-### Test environment
+### Ubuntu
+
+#### Test environment
 
 The information below provided for:
 
@@ -39,7 +41,7 @@ The information below provided for:
 
   
 
-### Preparations for run
+#### Preparations for run
 
 Install hashcat:
 
@@ -89,4 +91,32 @@ Open Swagger on [https://localhost:5000/docs](https://localhost:5000/docs)
 Open API specification on [https://localhost:5000/redoc](https://localhost:5000/redoc)
 
 
+
+### Windows
+
+Clone [ntlm-scrutinizer](https://github.com/ST1LLY/ntlm-scrutinizer)
+
+```bash
+git clone https://github.com/ST1LLY/ntlm-scrutinizer
+```
+
+Open Powershell, cd to created ntlm-scrutinizer folder
+
+Create Python virtual environment
+
+```powershell
+&"C:\Program Files\Python310\python.exe" -m venv venv
+```
+
+Active venv
+
+```
+.\venv\Scripts\Activate.ps1
+```
+
+Install pip packages
+
+```
+pip install -r .\requirements.txt
+```
 
