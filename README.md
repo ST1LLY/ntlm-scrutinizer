@@ -124,7 +124,9 @@ Put in files/rules a necessary rule, ex. [InsidePro-PasswordsPro.rule](https://g
 
 ### Run
 
-run app:
+Open terminal
+
+Execute commands for running web app
 
 ```shell
 uvicorn app:app --reload --host 0.0.0.0 --port 5000 --ssl-keyfile dev_selfsigned.key --ssl-certfile dev_selfsigned.crt
