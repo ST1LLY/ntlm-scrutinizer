@@ -1,5 +1,7 @@
 # NTLM scrutinizer
 
+It's the part of the [dc-sonar](https://github.com/ST1LLY/dc-sonar) project
+
 ## Disclaimer
 
 It's only for education purposes.
@@ -122,6 +124,12 @@ Put in files/dictionaries a necessary dictionary, ex. [rockyou.txt](https://gith
 
 Put in files/rules a necessary rule, ex. [InsidePro-PasswordsPro.rule](https://github.com/hashcat/hashcat/blob/master/rules/InsidePro-PasswordsPro.rule)
 
+Copy `configs/settings_blank.conf` to `configs/settings.conf`
+
+Fulfil
+
+`APP` section param `aes_256_key` for decryption and  encryption saved passed of acc have been bruted
+
 ### Run
 
 Open terminal
@@ -145,3 +153,4 @@ See common settings in [common PyCharm settings](https://github.com/ST1LLY/dc-so
 #### Pylint
 
 Arguments: `--extension-pkg-whitelist=pydantic --max-line-length=119 --disable=too-few-public-methods,import-error,import-outside-toplevel`
+
