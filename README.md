@@ -129,6 +129,8 @@ Open terminal
 Execute commands for running web app
 
 ```shell
+source venv-ntlm-scrut/bin/activate
+cd ntlm-scrutinizer/
 uvicorn app:app --reload --host 0.0.0.0 --port 5000 --ssl-keyfile dev_selfsigned.key --ssl-certfile dev_selfsigned.crt
 ```
 
