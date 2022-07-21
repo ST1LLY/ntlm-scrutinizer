@@ -152,11 +152,5 @@ Open Swagger on [https://localhost:5000/docs](https://localhost:5000/docs).
 
 Open API specification on [https://localhost:5000/redoc](https://localhost:5000/redoc).
 
-### PyCharm settings
 
-See common settings in [common PyCharm settings](https://github.com/ST1LLY/dc-sonar#pycharm-settings).
-
-#### Pylint
-
-Arguments: `--extension-pkg-whitelist=pydantic --max-line-length=119 --disable=too-few-public-methods,import-error,import-outside-toplevel`.
 
