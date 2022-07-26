@@ -25,7 +25,7 @@ HASHCAT_RULES_DIR = os.path.join(ROOT_DIR, 'files', 'rules')
 # The path to the dir with ntlm hashes
 NTLM_HASHES_DIR = os.path.join(ROOT_DIR, 'files', 'ntlm_hashes')
 
-DUMP_NTLM_SCRIPT_PATH = os.path.join(ROOT_DIR, 'dump_secrets_ntlm.py')
+DUMP_NTLM_SCRIPT_PATH = sup_f.get_path_if_compiled(os.path.join(ROOT_DIR, 'dump_secrets_ntlm.py'))
 
 # The path to app config file
 CONFIG_PATH = os.path.join(ROOT_DIR, 'configs', 'settings.conf')
