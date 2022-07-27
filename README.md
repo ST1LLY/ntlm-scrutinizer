@@ -152,5 +152,8 @@ Open Swagger on [https://localhost:5000/docs](https://localhost:5000/docs).
 
 Open API specification on [https://localhost:5000/redoc](https://localhost:5000/redoc).
 
+## Versions
 
+### 2022.7.27-1
 
+The initial version.
