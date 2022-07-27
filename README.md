@@ -151,9 +151,3 @@ uvicorn app:app --reload --host 0.0.0.0 --port 5000 --ssl-keyfile dev_selfsigned
 Open Swagger on [https://localhost:5000/docs](https://localhost:5000/docs).
 
 Open API specification on [https://localhost:5000/redoc](https://localhost:5000/redoc).
-
-## Versions
-
-### 2022.7.27-1
-
-The initial version.
