@@ -5,7 +5,6 @@ Author:
     Konstantin S. (https://github.com/ST1LLY)
 """
 import os
-import re
 from enum import Enum
 from uuid import UUID
 
@@ -89,12 +88,10 @@ def status(commons: dict[str, UUID] = Depends(common_query_session_params)) -> d
 def download_hashes(file_path: str) -> FileResponse:
     """
     See the description param of router decorator
+    TODO: Add securing to the method!!!
     """
-    if re.match(
-        r'/home/user/ntlm-scrutinizer/files/ntlm_hashes/[a-f\d]{8}-?[a-f\d]{4}-?4[a-f\d]{3}-?[89ab][a-f\d]'
-        r'{3}-?[a-f\d]{12}\.ntds',
-        file_path,
-    ) and os.path.exists(file_path):
+
+    if os.path.exists(file_path):
 
         return FileResponse(
             path=file_path, filename=os.path.basename(file_path), media_type='application/octet-stream'
